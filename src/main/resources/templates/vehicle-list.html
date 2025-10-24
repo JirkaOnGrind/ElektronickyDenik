@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Výběr vozíku</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
+
+<div class="flex-grow container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Vyberte vozík pro práci</h1>
+        <a href="/vehicles/register"
+           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            + Přidat vozík
+        </a>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div th:each="vehicle : ${vehicles}"
+             class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
+            <div class="text-center">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2" th:text="${vehicle.brand + ' ' + vehicle.type}"></h3>
+                <p class="text-gray-600 mb-1">Výr. číslo: <span th:text="${vehicle.serialNumber}"></span></p>
+                <p th:if="${vehicle.capacity}" class="text-gray-600 mb-1">
+                    Nosnost: <span th:text="${vehicle.capacity}"></span> kg
+                </p>
+                <p th:if="${vehicle.registrationNumber}" class="text-gray-600 mb-4">
+                    Evid. číslo: <span th:text="${vehicle.registrationNumber}"></span>
+                </p>
+                <a th:href="@{/home(vehicleId=${vehicle.id})}"
+                   class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition inline-block w-full">
+                    Vybrat tento vozík
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${vehicles.empty}" class="text-center py-8 col-span-full">
+            <p class="text-gray-500 text-lg mb-4">Zatím nejsou žádné registrované vozíky.</p>
+            <a href="/vehicles/register" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition inline-block">
+                Registrovat první vozík
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

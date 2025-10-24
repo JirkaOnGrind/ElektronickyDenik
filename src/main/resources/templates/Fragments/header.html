@@ -1,0 +1,62 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Header Fragment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+<!-- fragment pro header -->
+<div th:fragment="mainHeader(title)">
+    <!-- Hlavní header -->
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+        <!-- Titulek vlevo -->
+        <h1 class="text-2xl font-bold text-gray-800" th:text="${title}">Default Title</h1>
+
+        <!-- Uživatelské info / login vpravo -->
+        <div class="flex items-center space-x-2">
+            <!-- Desktop verze -->
+            <a th:if="${username == null}" th:href="@{/login}"
+               class="hidden sm:block text-gray-700 font-medium hover:text-blue-600 transition">
+                Přihlásit se
+            </a>
+            <a th:if="${username != null}" th:href="@{/home}"
+               class="hidden sm:block text-gray-700 font-medium hover:text-blue-600 transition">
+                <span th:text="${username}">Uživatel</span>
+            </a>
+
+            <!-- Mobile verze = user ikonka -->
+            <a th:if="${username == null}" th:href="@{login}" class="sm:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-8 w-8 text-gray-600 hover:text-blue-600 transition"
+                     fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                    <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.33 0-10 1.667-10 5v3h20v-3c0-3.333-6.67-5-10-5z"/>
+                </svg>
+            </a>
+            <a th:if="${username != null}" th:href="@{/home}" class="sm:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-8 w-8 text-gray-600 hover:text-blue-600 transition"
+                     fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                    <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.33 0-10 1.667-10 5v3h20v-3c0-3.333-6.67-5-10-5z"/>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <!-- Případné menu (desktop i mobil) -->
+    <nav class="bg-gray-100 border-t border-gray-200">
+        <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+            <!-- Menu položky -->
+            <div class="flex space-x-4">
+
+                <!--  <a href="#" class="text-gray-700 hover:text-blue-600 transition">Home</a>
+                 <a href="#" class="text-gray-700 hover:text-blue-600 transition">About</a> -->
+
+             </div>
+         </div>
+     </nav>
+ </div>
+
+ </body>
+ </html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Denní kontrola vozíku</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
+
+<div class="flex-grow container mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Denní kontrola vozíku</h1>
+
+        <form th:action="@{/daily-check}" th:object="${dailyCheckForm}" method="post" class="space-y-6">
+            <!-- EXPLICITNÍ hidden field - tohle URČITĚ funguje -->
+            <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+            <!-- Evidence záznamu -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Datum kontroly</label>
+                    <input type="date" th:field="*{checkDate}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Automaticky dnešní datum - můžete změnit</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vozík</label>
+                    <p class="text-gray-800 font-semibold" th:text="${vehicle.brand + ' ' + vehicle.type}"></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Obsluha</label>
+                    <p class="text-gray-800 font-semibold" th:text="${user.firstName + ' ' + user.lastName}"></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Výr. číslo</label>
+                    <p class="text-gray-800 font-semibold" th:text="${vehicle.serialNumber}"></p>
+                </div>
+            </div>
+
+            <!-- Výsledek kontroly a závady -->
+            <div class="p-4 bg-gray-50 rounded-lg space-y-4">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Výsledek kontroly</h2>
+
+                <!-- Celkový výsledek -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Celkový výsledek</label>
+                    <div class="flex space-x-6">
+                        <label class="inline-flex items-center">
+                            <input type="radio" th:field="*{overallResult}" value="BEZ_ZAVAD" class="text-green-600 focus:ring-green-500" required>
+                            <span class="ml-2 text-green-700 font-medium">Bez závad</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" th:field="*{overallResult}" value="ZAVAD" class="text-red-600 focus:ring-red-500" required>
+                            <span class="ml-2 text-red-700 font-medium">Závada</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Popis závad -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Popis závad</label>
+                    <textarea th:field="*{defectsDescription}"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              rows="4"
+                              placeholder="Pokud byly zjištěny závady, popište je zde..."></textarea>
+                </div>
+            </div>
+
+            <!-- Tlačítko -->
+            <div class="text-center">
+                <button type="submit"
+                        class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-medium text-lg">
+                    Uložit kontrolu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
