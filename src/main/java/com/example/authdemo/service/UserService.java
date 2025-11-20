@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -107,5 +108,26 @@ public class UserService implements UserDetailsService {
         } catch (Exception e) {
             System.err.println("Chyba při mazání usera a related data: " + e.getMessage());
         }
+    }
+
+    public Optional<User> changePassword(String email, String newPassword) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return Optional.of(user);
+        }
+        return Optional.empty();
+    }
+    public void softDelete(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+
+        // THIS IS THE SOFT DELETE LOGIC:
+        user.setDeletedAt(LocalDateTime.now());
+
+        // Save the update
+        userRepository.save(user);
     }
 }

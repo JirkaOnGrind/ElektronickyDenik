@@ -50,6 +50,9 @@ public class User {
     @Column(name = "terms_accepted_at", nullable = false)
     private LocalDateTime termsAcceptedAt;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -165,6 +168,14 @@ public class User {
         this.termsAcceptedAt = termsAcceptedAt;
     }
 
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     // Aktualizované konstruktory
     public User(String firstName, String lastName, String email, String phone, String password, String key) {
         this.firstName = firstName;
@@ -180,6 +191,7 @@ public class User {
         this.key = key;
         this.verificationKey = generateVerificationCode();
         this.verificated = false;
+        this.deletedAt = null;
     }
 
 

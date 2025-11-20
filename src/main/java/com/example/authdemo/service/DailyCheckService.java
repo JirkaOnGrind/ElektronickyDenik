@@ -1,6 +1,7 @@
 package com.example.authdemo.service;
 
 import com.example.authdemo.model.DailyCheck;
+import com.example.authdemo.model.Vehicle;
 import com.example.authdemo.repository.DailyCheckRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,9 @@ public class DailyCheckService {
         return dailyCheckRepository.findByVehicleIdAndCheckDateBetween(vehicleId, startDate, endDate);
     }
 
-
+    public List<DailyCheck> findChecksByVehicleAndDateRange(Vehicle vehicle, LocalDate startDate, LocalDate endDate) {
+        return dailyCheckRepository.findByVehicleAndCheckDateBetween(vehicle, startDate, endDate);
+    }
 
     public boolean existsDailyCheckForVehicleAndDate(Long vehicleId, LocalDate date) {
         return dailyCheckRepository.existsByVehicleIdAndCheckDate(vehicleId, date);

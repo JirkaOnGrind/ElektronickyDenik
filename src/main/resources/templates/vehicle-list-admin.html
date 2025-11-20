@@ -9,6 +9,13 @@
 <div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
 
 <div class="flex-grow container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Vyberte vozík pro práci</h1>
+        <a href="/vehicles/register"
+           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            + Přidat vozík
+        </a>
+    </div>
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div th:each="vehicle : ${vehicles}"
@@ -33,6 +40,9 @@
 
         <div th:if="${vehicles.empty}" class="text-center py-8 col-span-full">
             <p class="text-gray-500 text-lg mb-4">Zatím nejsou žádné registrované vozíky.</p>
+            <a href="/vehicles/register" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition inline-block">
+                Registrovat první vozík
+            </a>
         </div>
     </div>
 </div>

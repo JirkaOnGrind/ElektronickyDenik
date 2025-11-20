@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -34,29 +36,48 @@ public class DailyCheckController {
 
     @GetMapping
     public String showDailyCheckForm(@RequestParam(value = "vehicleId") Long vehicleId,
+                                     @RequestParam(value = "startDate", required = false) LocalDate startDate,
+                                     @RequestParam(value = "endDate", required = false) LocalDate endDate,
                                      Principal principal,
                                      Model model) {
 
-        // Kontrola, zda vozík existuje
-        Optional<Vehicle> vehicle = vehicleService.getVehicleById(vehicleId);
-        if (vehicle.isEmpty()) {
-            return "redirect:/vehicles/list?error=vehicle_not_found";
+        // 1. Validate Vehicle and User
+        Optional<Vehicle> vehicleOpt = vehicleService.getVehicleById(vehicleId);
+        if (vehicleOpt.isEmpty()) return "redirect:/vehicles/list";
+
+        Optional<User> userOpt = userService.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) return "redirect:/login";
+        User user = userOpt.get();
+
+        Vehicle vehicle = vehicleOpt.get();
+
+        // 2. ADMIN LOGIC: Load History
+        if ("ADMIN".equals(user.getRole())) {
+            if (startDate == null) startDate = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+            if (endDate == null) endDate = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+
+            List<DailyCheck> checks = dailyCheckService.findChecksByVehicleAndDateRange(vehicle, startDate, endDate);
+
+            model.addAttribute("vehicle", vehicle);
+            model.addAttribute("checks", checks);
+            model.addAttribute("startDate", startDate);
+            model.addAttribute("endDate", endDate);
+
+            // FIX: Use brand and type instead of getName()
+            String vehicleDisplayName = vehicle.getBrand() + " " + vehicle.getType();
+            model.addAttribute("pageTitle", "Historie kontrol - " + vehicleDisplayName);
+
+            return "daily-check-form-admin";
         }
 
-        // Načtení přihlášeného uživatele
-        Optional<User> user = userService.findByEmail(principal.getName());
-        if (user.isEmpty()) {
-            return "redirect:/login";
-        }
-
-        // Vytvoření DailyCheckForm (DTO)
+        // 3. USER LOGIC: Show Empty Form (Existing code)
         DailyCheckForm dailyCheckForm = new DailyCheckForm();
-        dailyCheckForm.setCheckDate(LocalDate.now()); // Automaticky dnešní datum
-
+        dailyCheckForm.setCheckDate(LocalDate.now());
         model.addAttribute("dailyCheckForm", dailyCheckForm);
-        model.addAttribute("vehicle", vehicle.get()); // Pro zobrazení informací
-        model.addAttribute("user", user.get());       // Pro zobrazení informací
+        model.addAttribute("vehicle", vehicle);
+        model.addAttribute("user", user);
         model.addAttribute("pageTitle", "Denní kontrola vozíku");
+
         return "daily-check-form";
     }
 

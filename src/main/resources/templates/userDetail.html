@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Detail uživatele</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
+
+<div class="flex-grow container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Detail uživatele</h1>
+
+    <div class="bg-white shadow rounded-lg p-6 max-w-md mx-auto">
+        <p><strong>Jméno:</strong> <span th:text="${user.firstName}"></span></p>
+        <p><strong>Příjmení:</strong> <span th:text="${user.lastName}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+        <p><strong>Telefon:</strong> <span th:text="${user.phone}"></span></p>
+        <p><strong>Role:</strong> <span th:text="${user.role}"></span></p>
+    </div>
+
+    <!--Action buttons-->
+    <div class="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
+        <!-- Back Button -->
+        <a th:href="@{/usersList}" class="text-gray-500 hover:text-gray-700 text-sm font-medium transition duration-150">
+            &larr; Zpět na seznam
+        </a>
+
+        <!-- DELETE Button (Inside a Form for security) -->
+        <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post"
+              onsubmit="return confirm('Opravdu chcete smazat tohoto uživatele? Tato akce jej označí jako neaktivního.');">
+
+            <button type="submit"
+                    class="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200 font-semibold py-2 px-4 rounded transition duration-150 shadow-sm">
+                <!-- SVG Trash Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Smazat
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

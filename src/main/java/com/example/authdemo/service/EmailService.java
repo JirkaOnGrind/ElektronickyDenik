@@ -23,6 +23,7 @@ public class EmailService {
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
+    // SENDS -----------------------------------------------------------------------
     @Async
     public void sendVerificationEmail(User user)
     {
@@ -37,6 +38,49 @@ public class EmailService {
         userRepository.save(user);
         mailSender.send(message);
     }
+    // Pomocná funkce pro send ale s userId
+    @Async
+    public void sendVerificationEmailViaId(Long userId)
+    {
+        Optional<User> dbUser = userRepository.findById(userId);
+        if (dbUser.isPresent()) {
+            User user = dbUser.get();
+            // Musí se vygenerovat nový, starý už je zašifrován -------------------------
+            user.setVerificationKey(User.generateVerificationCode());
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setFrom("elektronickydenik@authdemo.mailtrap.link");
+            message.setSubject("Ověřovací kód");
+            message.setText("Dobrý den, zde zasíláme kód od Elektronického Deníku: " + user.getVerificationKey() + "\nTento kód je platný po dobu 15 minut. Po uplynutí této doby bude váš účet automaticky smazán.");
+            // Hashování kódu před uložením
+            String hashedVerificationKey = passwordEncoder.encode(user.getVerificationKey());
+            user.setVerificationKey(hashedVerificationKey);
+            userRepository.save(user);
+            mailSender.send(message);
+        }
+    }
+    // Pomocná funkce pro send ale s userEmail
+    @Async
+    public void sendVerificationEmailViaEmail(String email)
+    {
+        Optional<User> dbUser = userRepository.findByEmail(email);
+        if (dbUser.isPresent()) {
+            User user = dbUser.get();
+            // Musí se vygenerovat nový, starý už je zašifrován -------------------------
+            user.setVerificationKey(User.generateVerificationCode());
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setFrom("elektronickydenik@authdemo.mailtrap.link");
+            message.setSubject("Ověřovací kód");
+            message.setText("Dobrý den, toto je váš kód od Elektronického Deníku pro reset hesla: " + user.getVerificationKey() + "\nPokud jste o reset hesla nežádal, prosím ignorujte tento email.");
+            // Hashování kódu před uložením
+            String hashedVerificationKey = passwordEncoder.encode(user.getVerificationKey());
+            user.setVerificationKey(hashedVerificationKey);
+            userRepository.save(user);
+            mailSender.send(message);
+        }
+    }
+    // CHECKS ---------------------------------------------
     public boolean checkVerificationCode(Long userId, String code)
     {
         System.out.println("Verification attempt");
@@ -55,6 +99,27 @@ public class EmailService {
             return verifiyCodesMatches;
         }
         System.out.println("User not found: " + userId);
+        return false;
+    }
+    // POMOCN8 FUNKCE POMOCÍ MAILU
+    public boolean checkVerificationCodeViaEmail(String email, String code)
+    {
+        System.out.println("VERIFICATION ATTEMPT VIA EMAIL");
+        Optional<User> dbUser = userRepository.findByEmail(email);
+        if (dbUser.isPresent()) {
+            User user = dbUser.get();
+            // Kontrola hesla pomocí passwordEncoder
+            boolean verifiyCodesMatches = passwordEncoder.matches(code,user.getVerificationKey());
+            if(verifiyCodesMatches)
+            {
+                System.out.println("Verification Succesful");
+                user.setVerificationKey("null");
+                user.setVerificated(true);
+                userRepository.save(user);
+            }
+            return verifiyCodesMatches;
+        }
+        System.out.println("User not found: " + email);
         return false;
     }
 }
