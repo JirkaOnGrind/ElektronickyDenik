@@ -207,4 +207,8 @@ public class User {
         int code = random.nextInt(900000) + 100000; // 100000–999999
         return String.valueOf(code);
     }
+
+    public boolean isAdmin() {
+        return "ADMIN".equalsIgnoreCase(this.role);
+    }
 }

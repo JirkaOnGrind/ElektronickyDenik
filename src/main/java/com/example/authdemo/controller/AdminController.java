@@ -12,10 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
@@ -25,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Controller
+@RequestMapping("/admin")
 public class AdminController {
     @Autowired
     private VehicleService vehicleService;
@@ -37,7 +35,8 @@ public class AdminController {
     public String usersList(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
         // authUser.getUsername() vrátí email přihlášeného uživatele
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
-        List<User> users = userRepository.findByRoleAndKeyAndDeletedAtIsNull("USER", loggedUser.getKey());
+        List<User> users = userRepository.findByKeyAndDeletedAtIsNull(loggedUser.getKey());
+        users.remove(loggedUser);
         model.addAttribute("users", users);
         model.addAttribute("pageTitle", "Uživatelé");
         return "usersList";
@@ -75,7 +74,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Chyba při mazání uživatele.");
         }
         // Redirect back to the list of users
-        return "redirect:/usersList";
+        return "redirect:/admin/usersList";
     }
 
     // Přidání uživatele:
@@ -115,17 +114,16 @@ public class AdminController {
         user.setGdprAcceptedAt(LocalDateTime.now());
         user.setTermsAccepted(true);
         user.setTermsAcceptedAt(LocalDateTime.now());
-        user.setVerificated(false); // Or true, if you want admin-created users to be auto-verified
+        user.setVerificated(true); // Or true, if you want admin-created users to be auto-verified
         user.setVerificationKey(UUID.randomUUID().toString()); // Generate random code
         user.setDeletedAt(null);
-
         // 4. Call your Service to register
         String result = userService.registerUser(user);
 
         // 5. Handle the result string from your Service
         if ("success".equals(result)) {
             redirectAttributes.addFlashAttribute("successMessage", "Uživatel byl úspěšně přidán.");
-            return "redirect:/usersList";
+            return "redirect:/admin/usersList";
         }
         else {
             // Something went wrong, return to the form with the error
@@ -142,5 +140,11 @@ public class AdminController {
             // Return the form view so they can correct it (data in 'user' stays populated)
             return "addUser";
         }
+    }
+    @PostMapping("users/promote/{id}")
+    public String promoteUserToAdmin(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        userService.changeRole(id, "ADMIN"); // or your logic
+        redirectAttributes.addFlashAttribute("successMessage", "Uživatel byl povýšen na admina.");
+        return "redirect:/admin/usersList"; // or redirect back to detail
     }
 }

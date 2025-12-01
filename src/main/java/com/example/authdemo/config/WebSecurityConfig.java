@@ -21,6 +21,8 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/auth/**", "/register", "/css/**", "/js/**","/register/company","/api/**","/dev/**","/verification","/changePassword", "/auth/verification/**","/newPassword").permitAll()
+                        .requestMatchers("/logo-provozni-denik.png").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

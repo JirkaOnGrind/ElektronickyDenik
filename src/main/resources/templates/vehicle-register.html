@@ -6,76 +6,111 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
-<div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
 
-<div class="flex-grow flex items-center justify-center px-4">
-    <div class="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Registrace vozíku</h1>
+<!-- Header Fragment: Keeping your original header source, but standardizing placement -->
+<div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
 
-        <form action="/vehicles/register" method="post" class="space-y-5">
-            <div>
-                <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Kategorie vozíku</label>
-                <select id="category" name="category" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                    <option value="" disabled selected>-- Vyberte kategorii --</option>
-                    <option value="JERABY">Jeřáby</option>
-                    <option value="STAVEBNI_STROJE">Stavební stroje</option>
-                    <option value="MOTOROVE_VYSOKOZDVIZNE_VOZIKY">Motorové vysokozdvižné vozíky</option>
-                </select>
-            </div>
-            <div>
-                <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Značka vozíku</label>
-                <input type="text" id="brand" name="brand" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-            </div>
+<div class="flex-grow container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
 
-            <div>
-                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Typ vozíku</label>
-                <input type="text" id="type" name="type" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-            </div>
+        <!-- Card Header -->
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-xl font-bold text-gray-800">Registrace vozíku</h2>
+            <p class="text-sm text-gray-600">Vyplňte údaje pro registraci nového vozíku do systému.</p>
+        </div>
 
-            <div>
-                <label for="serialNumber" class="block text-sm font-medium text-gray-700 mb-1">Výrobní číslo</label>
-                <input type="text" id="serialNumber" name="serialNumber" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-            </div>
+        <!-- Error Message Block (Adapted from User Template) -->
+        <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 mx-6 mt-6">
+            <strong class="font-bold">Chyba!</strong>
+            <span class="block sm:inline" th:text="${error}"></span>
+        </div>
 
-            <div>
-                <label for="capacity" class="block text-sm font-medium text-gray-700 mb-1">Nosnost (kg) - volitelné</label>
-                <input type="number" id="capacity" name="capacity" step="0.1"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-            </div>
+        <!-- Form -->
+        <form action="/vehicles/register" method="post" class="px-6 py-6 space-y-6">
 
-            <div>
-                <label for="registrationNumber" class="block text-sm font-medium text-gray-700 mb-1">Evidenční číslo - volitelné</label>
-                <input type="text" id="registrationNumber" name="registrationNumber"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            <!-- Row 1: Category and Brand -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Category -->
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Kategorie vozíku</label>
+                    <select id="category" name="category" required
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition bg-white">
+                        <option value="" disabled selected>-- Vyberte kategorii --</option>
+                        <option value="JERABY">Jeřáby</option>
+                        <option value="STAVEBNI_STROJE">Stavební stroje</option>
+                        <option value="MOTOROVE_VYSOKOZDVIZNE_VOZIKY">Motorové vysokozdvižné vozíky</option>
+                    </select>
+                </div>
+
+                <!-- Brand -->
+                <div>
+                    <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">Značka vozíku</label>
+                    <input type="text" id="brand" name="brand" required
+                           class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition"
+                           placeholder="Např. Linde">
+                </div>
             </div>
 
-            <div>
+            <!-- Row 2: Type and Serial Number -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Type -->
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Typ vozíku</label>
+                    <input type="text" id="type" name="type" required
+                           class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition"
+                           placeholder="Např. H30D">
+                </div>
+
+                <!-- Serial Number -->
+                <div>
+                    <label for="serialNumber" class="block text-sm font-medium text-gray-700 mb-1">Výrobní číslo</label>
+                    <input type="text" id="serialNumber" name="serialNumber" required
+                           class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition"
+                           placeholder="Např. S/N 123456">
+                </div>
+            </div>
+
+            <!-- Row 3: Capacity and Registration Number -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Capacity -->
+                <div>
+                    <label for="capacity" class="block text-sm font-medium text-gray-700 mb-1">Nosnost (kg)</label>
+                    <input type="number" id="capacity" name="capacity" step="0.1"
+                           class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition"
+                           placeholder="Např. 2500">
+                    <p class="text-xs text-gray-500 mt-1">Volitelné pole.</p>
+                </div>
+
+                <!-- Registration Number -->
+                <div>
+                    <label for="registrationNumber" class="block text-sm font-medium text-gray-700 mb-1">Evidenční číslo</label>
+                    <input type="text" id="registrationNumber" name="registrationNumber"
+                           class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 transition"
+                           placeholder="Interní označení">
+                    <p class="text-xs text-gray-500 mt-1">Volitelné pole.</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
+                <!-- Changed Cancel link to go back to home or vehicle list -->
+                <a href="/" class="text-sm font-medium text-gray-600 hover:text-gray-800 px-4 py-2 rounded hover:bg-gray-100 transition">
+                    Zrušit
+                </a>
                 <button type="submit"
-                        class="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                        class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded shadow hover:shadow-md transition duration-200 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
                     Zaregistrovat vozík
                 </button>
             </div>
 
-            <div th:if="${error}"
-                 class="mt-4 p-2 text-sm text-red-600 bg-red-100 border border-red-400 rounded-md animate-shake">
-                <span th:text="${error}"></span>
-            </div>
         </form>
     </div>
 </div>
+
+<!-- Footer Fragment -->
+<footer th:replace="~{fragments/footer :: mainFooter}"></footer>
 </body>
 </html>
-<style>
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        20%, 60% { transform: translateX(-8px); }
-        40%, 80% { transform: translateX(8px); }
-    }
-    .animate-shake {
-        animation: shake 0.5s ease-in-out;
-    }
-</style>

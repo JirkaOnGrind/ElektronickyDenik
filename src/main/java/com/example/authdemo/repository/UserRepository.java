@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional
     @Query("DELETE FROM User u WHERE u.verificated = false AND u.termsAcceptedAt < :threshold")
     void deleteUnverifiedUsersOlderThan(@Param("threshold") LocalDateTime threshold);
+
+    List<User> findByKeyAndDeletedAtIsNull(String key);
 }

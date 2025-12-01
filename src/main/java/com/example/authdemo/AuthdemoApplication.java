@@ -23,6 +23,7 @@ public class AuthdemoApplication {
         SpringApplication.run(AuthdemoApplication.class, args);
 
     }
+    /*
     @Bean
     CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 
@@ -118,5 +119,6 @@ public class AuthdemoApplication {
             }
         };
     }
+    */
 
 }

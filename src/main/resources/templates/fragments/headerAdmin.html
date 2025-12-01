@@ -1,0 +1,97 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Header Fragment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+<div th:fragment="mainHeader">
+    <header class="bg-white shadow-sm relative z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+
+                <!-- LEFT SIDE GROUP: Logo + Navigation -->
+                <div class="flex items-center gap-8">
+                    <!-- 1. Logo (Provoznidenik.com) -->
+                    <a href="https://www.provoznidenik.com" target="_blank"
+                       class="text-xl font-bold text-orange-600 hover:text-orange-700 tracking-wide transition flex-shrink-0">
+                        provoznidenik.com
+                    </a>
+
+                    <!-- 2. Desktop Navigation (Hidden on mobile) -->
+                    <nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                        <a th:href="@{/admin/dashboard}"
+                           class="text-base font-medium text-gray-700 px-3 py-2 rounded-lg hover:text-green-600 hover:bg-green-50 transition duration-300">
+                            Domů
+                        </a>
+                        <a th:href="@{/admin/usersList}"
+                           class="text-base font-medium text-gray-700 px-3 py-2 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition duration-300">
+                            Uživatelé
+                        </a>
+                        <a th:href="@{/admin/machines}"
+                           class="text-base font-medium text-gray-700 px-3 py-2 rounded-lg hover:text-orange-600 hover:bg-orange-50 transition duration-300">
+                            Stroje
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- RIGHT SIDE GROUP: Logout + Mobile Toggle -->
+                <div class="flex items-center gap-4">
+
+                    <!-- Logout Button (Visible on Desktop) -->
+                    <a th:href="@{/logout}"
+                       class="hidden md:inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-400 hover: text-red-600 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Odhlásit se
+                    </a>
+
+                    <!-- Mobile Hamburger Button (Visible on Mobile) -->
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-700 focus:outline-none hover:text-orange-600 transition">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 shadow-inner">
+            <div class="flex flex-col p-4 space-y-2">
+                <a th:href="@{/admin/dashboard}"
+                   class="block text-lg font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 px-4 py-3 rounded-lg transition">
+                    Domů
+                </a>
+                <a th:href="@{/admin/usersList}"
+                   class="block text-lg font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 px-4 py-3 rounded-lg transition">
+                    Uživatelé
+                </a>
+                <a th:href="@{/admin/machines}"
+                   class="block text-lg font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 px-4 py-3 rounded-lg transition">
+                    Stroje
+                </a>
+                <!-- Mobile Logout -->
+                <a th:href="@{/logout}"
+                   class="block text-lg font-semibold text-red-600 hover:bg-red-50 px-4 py-3 rounded-lg transition border-t border-gray-100 mt-2">
+                    Odhlásit se
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        if(btn && menu) {
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('hidden');
+            });
+        }
+    </script>
+</div>
+
+</body>
+</html>

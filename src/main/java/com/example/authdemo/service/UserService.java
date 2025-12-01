@@ -130,4 +130,15 @@ public class UserService implements UserDetailsService {
         // Save the update
         userRepository.save(user);
     }
+
+    public void changeRole(Long id, String admin) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+
+        // THIS IS THE SOFT DELETE LOGIC:
+        user.setRole(admin);
+
+        // Save the update
+        userRepository.save(user);
+    }
 }

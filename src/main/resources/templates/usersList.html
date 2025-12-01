@@ -6,7 +6,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
-<div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
+<div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
+
 
 <div class="flex-grow container mx-auto px-4 py-8">
 
@@ -14,9 +15,8 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Seznam uživatelů</h1>
 
-        <!-- Link to the add user page (we will create the controller for this next) -->
-        <a th:href="@{/users/new}"
-           class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow hover:shadow-md transition duration-200 flex items-center gap-2">
+        <a th:href="@{/admin/users/new}"
+           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow hover:shadow-md transition duration-200 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -24,43 +24,119 @@
         </a>
     </div>
 
-    <!-- ALERT NOTIFICATION AREA -->
+    <!-- ALERT NOTIFICATION AREA (SMART COLORS) -->
+    <!-- Checks if message contains 'smazán'. If yes -> Red, Else -> Green -->
     <div th:if="${successMessage}"
-         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 shadow-sm"
+         th:class="${#strings.contains(successMessage, 'smazán')} ?
+            'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 shadow-sm' :
+            'bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 shadow-sm'"
          role="alert">
         <strong class="font-bold">Informace:</strong>
         <span class="block sm:inline" th:text="${successMessage}"></span>
+
+        <!-- Close Button (Icon color also adapts) -->
         <span class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none';">
-            <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+            <svg th:class="${#strings.contains(successMessage, 'smazán')} ? 'fill-current h-6 w-6 text-red-500' : 'fill-current h-6 w-6 text-green-500'"
+                 role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>Close</title>
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
         </span>
     </div>
 
-    <!-- TABLE -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    <!-- FILTER SECTION -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <div class="relative w-full md:w-1/2 lg:w-1/3">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" id="searchInput"
+                   class="pl-10 block w-full border-gray-300 border rounded-md py-2 px-3 text-sm focus:ring-green-500 focus:border-green-500 placeholder-gray-400 shadow-sm"
+                   placeholder="Hledat jméno, příjmení nebo email..." onkeyup="filterTable()">
+        </div>
+    </div>
+
+    <!-- TABLE CONTAINER -->
+    <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+
+        <!-- Empty State (Frontend Search) -->
+        <div id="noResultsMessage" class="hidden text-center py-8">
+            <p class="text-gray-500 text-lg">Nebyli nalezeni žádní uživatelé odpovídající filtru.</p>
+        </div>
+
+        <!-- TABLE -->
+        <table id="userTable" class="min-w-full divide-y divide-gray-200 table-fixed">
+            <thead class="bg-gray-100 border-b border-gray-200">
             <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="w-1/4 px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Jméno
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="w-1/4 px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Příjmení
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" class="w-1/3 px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Email
+                </th>
+                <th scope="col" class="w-16 px-6 py-3 relative">
+                    <span class="sr-only">Edit</span>
                 </th>
             </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-            <tr th:each="user : ${users}" class="hover:bg-gray-100 cursor-pointer"
-                th:onclick="'location.href=\'/users/' + ${user.id} + '\';'">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.firstName}"></td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.lastName}"></td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${user.email}"></td>
+            <tr th:each="user : ${users}"
+                class="user-row even:bg-slate-50 hover:bg-blue-100 cursor-pointer transition duration-150 ease-in-out"
+                th:onclick="'location.href=\'/admin/users/' + ${user.id} + '\';'">
+
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium search-target" th:text="${user.firstName}"></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium search-target" th:text="${user.lastName}"></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 search-target" th:text="${user.email}"></td>
+
+                <!-- Chevron Icon -->
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </td>
             </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    function filterTable() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('.user-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const targets = row.querySelectorAll('.search-target');
+            let searchTextContent = "";
+            targets.forEach(t => searchTextContent += t.innerText.toLowerCase() + " ");
+
+            if (searchTextContent.includes(searchInput)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const noResultsMsg = document.getElementById('noResultsMessage');
+        const table = document.getElementById('userTable');
+
+        if (visibleCount === 0 && rows.length > 0) {
+            noResultsMsg.classList.remove('hidden');
+            table.classList.add('hidden');
+        } else {
+            noResultsMsg.classList.add('hidden');
+            table.classList.remove('hidden');
+        }
+    }
+</script>
+
 </body>
+<footer th:replace="~{fragments/footer :: mainFooter}"></footer>
 </html>

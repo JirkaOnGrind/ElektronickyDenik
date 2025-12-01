@@ -21,7 +21,8 @@
 
 <!-- Header (Hidden on Print) -->
 <div class="no-print">
-    <div th:replace="fragments/header :: mainHeader(${pageTitle})"></div>
+    <div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
+
 </div>
 
 <div class="flex-grow container mx-auto px-4 py-8 print-container">
@@ -149,5 +150,6 @@
     </div>
 
 </div>
+<footer th:replace="~{fragments/footer :: mainFooter}"></footer>
 </body>
 </html>

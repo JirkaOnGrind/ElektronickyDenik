@@ -17,9 +17,9 @@
         <!-- Uživatelské info / login vpravo -->
         <div class="flex items-center space-x-2">
             <!-- Desktop verze -->
-            <a th:if="${username == null}" th:href="@{/login}"
+            <a th:if="${username == null}" th:href="@{/logout}"
                class="hidden sm:block text-gray-700 font-medium hover:text-blue-600 transition">
-                Přihlásit se
+                Odhlásit se
             </a>
             <a th:if="${username != null}" th:href="@{/home}"
                class="hidden sm:block text-gray-700 font-medium hover:text-blue-600 transition">

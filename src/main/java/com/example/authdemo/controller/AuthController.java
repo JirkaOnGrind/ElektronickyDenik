@@ -5,6 +5,8 @@ import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
 import com.example.authdemo.service.*;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -218,7 +220,9 @@ public class AuthController {
     @GetMapping("/home")
     public String showHomePage(@RequestParam(value = "vehicleId", required = false) Long vehicleId,
                                Principal principal,
-                               Model model) {
+                               Model model,
+                               Authentication authentication) {
+
         if (principal != null) {
             String email = principal.getName();
             Optional<User> user = userService.findByEmail(email);
@@ -230,9 +234,15 @@ public class AuthController {
             Optional<Vehicle> vehicle = vehicleService.getVehicleById(vehicleId);
             vehicle.ifPresent(v -> model.addAttribute("selectedVehicle", v));
         }
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN"));
 
+        if (isAdmin) {
+            return "vehicleSpecificAdmin"; // Return admin view
+        }
         model.addAttribute("pageTitle", "Domů");
-        return "homeUser";
+        return "vehicleSpecificUser";
     }
 
 
