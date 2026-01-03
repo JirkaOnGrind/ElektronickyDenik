@@ -69,18 +69,23 @@ public class VehicleController {
 
     @GetMapping("/vehicles/list")
     public String showVehiclesList(Model model, Principal principal, Authentication authentication) {
+        // 1. This service call now automatically filters the list based on the user's role
         List<Vehicle> vehicles = vehicleService.getVehiclesForCurrentUser(principal);
+
         model.addAttribute("pageTitle", "Všechny vozíky");
         model.addAttribute("vehicles", vehicles);
+
+        // 2. Check if Admin for view selection
         boolean isAdmin = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN"));
 
         if (isAdmin) {
-            return "vehicle-list-admin"; // Return admin view
+            // Admin gets the Admin View (with Edit/Delete buttons)
+            return "vehicle-list-admin";
         }
-        // --- End of Added Logic ---
 
+        // User gets the User View (View only, restricted list)
         return "vehicle-list";
     }
 

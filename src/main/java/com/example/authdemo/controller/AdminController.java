@@ -3,6 +3,7 @@ package com.example.authdemo.controller;
 import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
 import com.example.authdemo.repository.UserRepository;
+import com.example.authdemo.repository.VehicleRepository;
 import com.example.authdemo.service.UserService;
 import com.example.authdemo.service.VehicleService;
 import jakarta.servlet.http.HttpSession;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +32,12 @@ public class AdminController {
     private UserRepository userRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private final VehicleRepository vehicleRepository;
+
+    public AdminController(VehicleRepository vehicleRepository) {
+        this.vehicleRepository = vehicleRepository;
+    }
 
     @GetMapping("/usersList")
     public String usersList(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
@@ -45,19 +53,59 @@ public class AdminController {
     public String userDetail(@PathVariable Long id, Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
 
-        // Načteme uživatele a zkontrolujeme, že je ze stejné company
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Security check: Same company
         if (!user.getKey().equals(loggedUser.getKey())) {
             throw new AccessDeniedException("Nemáš oprávnění zobrazit tohoto uživatele");
         }
 
-        model.addAttribute("user", user);
-        model.addAttribute("pageTitle", "Detail uživatele");
-        return "userDetail"; // tady budeš mít novou HTML stránku pro detail
-    }
+        // --- NEW: Fetch all vehicles for the company ---
+        List<Vehicle> allVehicles = vehicleRepository.findByCompanyKey(user.getKey());
 
+        model.addAttribute("user", user);
+        model.addAttribute("vehicles", allVehicles); // Send vehicles to HTML
+        model.addAttribute("pageTitle", "Detail uživatele");
+
+        return "userDetail";
+    }
+    // Ukládání uživatele
+    @PostMapping("/users/{userId}/permissions")
+    public String updateUserPermissions(@PathVariable Long userId,
+                                        @RequestParam(required = false) List<Long> allowedVehicleIds,
+                                        @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
+
+        User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+        User targetUser = userRepository.findById(userId).orElseThrow();
+
+        // Security check
+        if (!targetUser.getKey().equals(loggedUser.getKey())) {
+            throw new AccessDeniedException("Nemáš oprávnění.");
+        }
+
+        // Handle null case (if all checkboxes are unchecked)
+        if (allowedVehicleIds == null) {
+            allowedVehicleIds = new ArrayList<>();
+        }
+
+        // Fetch all vehicles for this company
+        List<Vehicle> companyVehicles = vehicleRepository.findByCompanyKey(targetUser.getKey());
+
+        for (Vehicle vehicle : companyVehicles) {
+            if (allowedVehicleIds.contains(vehicle.getId())) {
+                // If the ID is in the list, the user SHOULD see it -> Remove from excluded
+                vehicle.showToUser(targetUser);
+            } else {
+                // If the ID is NOT in the list, the user is BANNED -> Add to excluded
+                vehicle.hideForUser(targetUser);
+            }
+            // Save the vehicle state
+            vehicleRepository.save(vehicle);
+        }
+
+        return "redirect:/admin/users/" + userId + "?success";
+    }
     @GetMapping("/machines")
     public String machinesList(Model model, Principal principal) {
         List<Vehicle> vehicles = vehicleService.getVehiclesForCurrentUser(principal);
