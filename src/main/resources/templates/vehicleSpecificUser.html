@@ -6,21 +6,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
-<div th:replace="~{fragments/header :: mainHeader(${pageTitle})}"></div>
 
+<div th:replace="~{fragments/header :: mainHeader(title=${pageTitle})}"></div>
 
 <div class="flex-grow container mx-auto px-4 py-8">
     <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-2">Vítejte v systému</h1>
         <p class="text-gray-600" th:if="${user}">Přihlášen jako: <span th:text="${user.firstName + ' ' + user.lastName}"></span></p>
 
-        <!-- Zobrazení vybraného vozíku -->
         <div th:if="${selectedVehicle == null}" class="mt-4 p-4 bg-yellow-50 rounded-lg max-w-md mx-auto">
             <p class="text-yellow-800">Není vybrán žádný vozík</p>
             <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Vybrat vozík</a>
         </div>
 
-        <div th:if="${selectedVehicle != null}" class="mt-4 p-4 rounded-lg max-w-md mx-auto">
+        <div th:if="${selectedVehicle != null and vehicleCount > 1}" class="mt-4 p-4 rounded-lg max-w-md mx-auto">
             <p class="text-blue-800 font-semibold">
                 Vybraný vozík:
                 <span th:text="${selectedVehicle.brand + ' ' + selectedVehicle.type + ' (' + selectedVehicle.serialNumber + ')'}"></span>
@@ -29,9 +28,7 @@
         </div>
     </div>
 
-    <!-- Tři tlačítka -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        <!-- Denní kontrola -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
         <a th:href="@{/daily-check(vehicleId=${selectedVehicle?.id})}" class="block group"
            th:classappend="${selectedVehicle == null} ? 'pointer-events-none opacity-50' : ''">
             <div class="bg-white rounded-xl shadow-lg p-4 text-center hover:shadow-xl transition-all duration-300 border-2 border-blue-100 hover:border-blue-300 h-full flex flex-col">
@@ -41,11 +38,9 @@
                     </svg>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-1">Denní kontrola</h3>
-                <p class="text-gray-600 text-xs mt-auto">(před zahájením provozu)</p>
             </div>
         </a>
 
-        <!-- Záznamy o údržbě a servisu -->
         <a th:href="@{/maintenance(vehicleId=${selectedVehicle?.id})}" class="block group"
            th:classappend="${selectedVehicle == null} ? 'pointer-events-none opacity-50' : ''">
             <div class="bg-white rounded-xl shadow-lg p-4 text-center hover:shadow-xl transition-all duration-300 border-2 border-green-100 hover:border-green-300 h-full flex flex-col">
@@ -60,7 +55,6 @@
             </div>
         </a>
 
-        <!-- Revize -->
         <a th:href="@{/revision(vehicleId=${selectedVehicle?.id})}" class="block group"
            th:classappend="${selectedVehicle == null} ? 'pointer-events-none opacity-50' : ''">
             <div class="bg-white rounded-xl shadow-lg p-4 text-center hover:shadow-xl transition-all duration-300 border-2 border-purple-100 hover:border-purple-300 h-full flex flex-col">
@@ -74,6 +68,26 @@
             </div>
         </a>
     </div>
+
+    <div th:if="${lastDefect != null}" class="max-w-4xl mx-auto mb-8">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-md flex items-start gap-4">
+            <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-red-800">POZOR: Nahlášena závada!</h3>
+                <p class="text-sm text-red-700 mt-1">
+                    <span class="font-semibold">Datum:</span> <span th:text="${#temporals.format(lastDefect.checkDate, 'dd.MM.yyyy')}"></span>
+                </p>
+                <p class="text-sm text-red-700 mt-1">
+                    <span class="font-semibold">Popis:</span> <span th:text="${lastDefect.defectsDescription}"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
 </div>
 <footer th:replace="~{fragments/footer :: mainFooter}"></footer>
 </body>

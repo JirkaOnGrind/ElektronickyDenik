@@ -41,11 +41,28 @@ public class AdminController {
 
     @GetMapping("/usersList")
     public String usersList(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
-        // authUser.getUsername() vrátí email přihlášeného uživatele
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+
+        // Check permission (Admin or Owner)
+        if (!"ADMIN".equals(loggedUser.getRole()) && !"OWNER".equals(loggedUser.getRole())) {
+            throw new AccessDeniedException("Nemáte oprávnění přistupovat k seznamu uživatelů.");
+        }
+
+        // Fetch all users in the company
         List<User> users = userRepository.findByKeyAndDeletedAtIsNull(loggedUser.getKey());
-        users.remove(loggedUser);
+
+        // Remove self from the list
+        users.removeIf(u -> u.getId().equals(loggedUser.getId()));
+
+        // --- FILTERING LOGIC ---
+        // If logged in as ADMIN, hide OWNER and other ADMINs
+        if ("ADMIN".equals(loggedUser.getRole())) {
+            users.removeIf(u -> "OWNER".equals(u.getRole()) || "ADMIN".equals(u.getRole()));
+        }
+        // Owner sees everyone (no extra filtering needed)
+
         model.addAttribute("users", users);
+        model.addAttribute("loggedUser", loggedUser);
         model.addAttribute("pageTitle", "Uživatelé");
         return "usersList";
     }
@@ -53,27 +70,37 @@ public class AdminController {
     public String userDetail(@PathVariable Long id, Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
 
-        User user = userRepository.findById(id)
+        User targetUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Security check: Same company
-        if (!user.getKey().equals(loggedUser.getKey())) {
+        // 1. Basic Company Check
+        if (!targetUser.getKey().equals(loggedUser.getKey())) {
             throw new AccessDeniedException("Nemáš oprávnění zobrazit tohoto uživatele");
         }
 
-        // --- NEW: Fetch all vehicles for the company ---
-        List<Vehicle> allVehicles = vehicleRepository.findByCompanyKey(user.getKey());
+        // 2. HIERARCHY CHECK (New)
+        // Admin cannot view Owner or other Admins
+        if ("ADMIN".equals(loggedUser.getRole())) {
+            if ("OWNER".equals(targetUser.getRole()) || "ADMIN".equals(targetUser.getRole())) {
+                throw new AccessDeniedException("Nemáte oprávnění spravovat administrátory nebo vlastníka.");
+            }
+        }
 
-        model.addAttribute("user", user);
-        model.addAttribute("vehicles", allVehicles); // Send vehicles to HTML
+        List<Vehicle> allVehicles = vehicleRepository.findByCompanyKey(targetUser.getKey());
+
+        model.addAttribute("user", targetUser);
+        model.addAttribute("loggedUser", loggedUser);
+        model.addAttribute("vehicles", allVehicles);
         model.addAttribute("pageTitle", "Detail uživatele");
 
         return "userDetail";
     }
     // Ukládání uživatele
+
     @PostMapping("/users/{userId}/permissions")
     public String updateUserPermissions(@PathVariable Long userId,
                                         @RequestParam(required = false) List<Long> allowedVehicleIds,
+                                        @RequestParam(required = false) List<Long> vehicleAdminIds, // <-- NEW PARAMETER
                                         @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
 
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
@@ -84,23 +111,33 @@ public class AdminController {
             throw new AccessDeniedException("Nemáš oprávnění.");
         }
 
-        // Handle null case (if all checkboxes are unchecked)
-        if (allowedVehicleIds == null) {
-            allowedVehicleIds = new ArrayList<>();
-        }
+        // Initialize lists if null
+        if (allowedVehicleIds == null) allowedVehicleIds = new ArrayList<>();
+        if (vehicleAdminIds == null) vehicleAdminIds = new ArrayList<>();
 
-        // Fetch all vehicles for this company
         List<Vehicle> companyVehicles = vehicleRepository.findByCompanyKey(targetUser.getKey());
 
         for (Vehicle vehicle : companyVehicles) {
-            if (allowedVehicleIds.contains(vehicle.getId())) {
-                // If the ID is in the list, the user SHOULD see it -> Remove from excluded
-                vehicle.showToUser(targetUser);
+
+            // 1. Handle "Vehicle Admin" (Developer)
+            if (vehicleAdminIds.contains(vehicle.getId())) {
+                vehicle.addVehicleAdmin(targetUser);
+
+                // If user is Admin of vehicle, they MUST be able to see it
+                if (!allowedVehicleIds.contains(vehicle.getId())) {
+                    allowedVehicleIds.add(vehicle.getId());
+                }
             } else {
-                // If the ID is NOT in the list, the user is BANNED -> Add to excluded
-                vehicle.hideForUser(targetUser);
+                vehicle.removeVehicleAdmin(targetUser);
             }
-            // Save the vehicle state
+
+            // 2. Handle Visibility
+            if (allowedVehicleIds.contains(vehicle.getId())) {
+                vehicle.allowUser(targetUser); // Use whitelist method
+            } else {
+                vehicle.removeUserAccess(targetUser); // Use whitelist method
+            }
+
             vehicleRepository.save(vehicle);
         }
 
@@ -114,14 +151,34 @@ public class AdminController {
         return "vehicle-list-admin";
     }
     @PostMapping("users/delete/{id}")
-    public String softDeleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String softDeleteUser(@PathVariable Long id,
+                                 @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser,
+                                 RedirectAttributes redirectAttributes) {
+        User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+        User targetUser = userRepository.findById(id).orElseThrow();
+
+        // OWNER can delete anyone (except themselves, technically)
+        if ("OWNER".equals(loggedUser.getRole())) {
+            // Allowed
+        }
+        // ADMIN can ONLY delete USER (not OWNER, not other ADMIN)
+        else if ("ADMIN".equals(loggedUser.getRole())) {
+            if ("ADMIN".equals(targetUser.getRole()) || "OWNER".equals(targetUser.getRole())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Nemůžete smazat jiného administrátora nebo vlastníka.");
+                return "redirect:/admin/users/" + id;
+            }
+        }
+        // Others cannot delete
+        else {
+            throw new AccessDeniedException("Nemáte oprávnění mazat uživatele.");
+        }
+
         try {
             userService.softDelete(id);
             redirectAttributes.addFlashAttribute("successMessage", "Uživatel byl úspěšně smazán.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Chyba při mazání uživatele.");
         }
-        // Redirect back to the list of users
         return "redirect:/admin/usersList";
     }
 
@@ -190,9 +247,136 @@ public class AdminController {
         }
     }
     @PostMapping("users/promote/{id}")
-    public String promoteUserToAdmin(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        userService.changeRole(id, "ADMIN"); // or your logic
+    public String promoteUserToAdmin(@PathVariable Long id,
+                                     @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser,
+                                     RedirectAttributes redirectAttributes) {
+        User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+
+        // Only OWNER can promote
+        if (!"OWNER".equals(loggedUser.getRole())) {
+            throw new AccessDeniedException("Pouze vlastník (OWNER) může jmenovat administrátory.");
+        }
+
+        userService.changeRole(id, "ADMIN");
         redirectAttributes.addFlashAttribute("successMessage", "Uživatel byl povýšen na admina.");
-        return "redirect:/admin/usersList"; // or redirect back to detail
+        return "redirect:/admin/usersList";
+    }
+
+    // 1. Zobrazení seznamu uživatelů pro konkrétní vozidlo
+    @GetMapping("/vehicles/{vehicleId}/users")
+    public String vehicleUsersList(@PathVariable Long vehicleId,
+                                   Model model,
+                                   @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
+
+        User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+
+        // Security Check
+        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole());
+        boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream()
+                .anyMatch(admin -> admin.getId().equals(loggedUser.getId()));
+
+        if (!vehicle.getCompanyKey().equals(loggedUser.getKey()) || (!isGlobalAdmin && !isVehicleAdmin)) {
+            throw new AccessDeniedException("Nemáte oprávnění spravovat toto vozidlo.");
+        }
+
+        List<User> companyUsers = userRepository.findByKeyAndDeletedAtIsNull(loggedUser.getKey());
+
+        // Remove self from list
+        companyUsers.removeIf(u -> u.getId().equals(loggedUser.getId()));
+
+        model.addAttribute("vehicle", vehicle);
+        model.addAttribute("users", companyUsers);
+
+        // --- ADD THIS LINE so the header knows who is logged in ---
+        model.addAttribute("user", loggedUser);
+        // ---------------------------------------------------------
+
+        return "vehicleUserList";
+    }
+
+    // 2. Uložení oprávnění (POST)
+    @PostMapping("/vehicles/{vehicleId}/permissions")
+    public String updateVehiclePermissions(@PathVariable Long vehicleId,
+                                           @RequestParam(required = false) List<Long> allowedUserIds,
+                                           @RequestParam(required = false) List<Long> vehicleAdminIds,
+                                           @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
+
+        User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+        Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseThrow();
+
+        // --- FIXED SECURITY CHECK (Compare IDs) ---
+        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole());
+        boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream()
+                .anyMatch(admin -> admin.getId().equals(loggedUser.getId()));
+
+        if (!vehicle.getCompanyKey().equals(loggedUser.getKey()) || (!isGlobalAdmin && !isVehicleAdmin)) {
+            throw new AccessDeniedException("Nemáte oprávnění spravovat toto vozidlo.");
+        }
+        // ------------------------------------------
+
+        if (allowedUserIds == null) allowedUserIds = new ArrayList<>();
+        if (vehicleAdminIds == null) vehicleAdminIds = new ArrayList<>();
+
+        List<User> companyUsers = userRepository.findByKeyAndDeletedAtIsNull(loggedUser.getKey());
+
+        for (User user : companyUsers) {
+
+            // CRITICAL FIX: Skip the logged-in user
+            // Since we hid them in the form, they are NOT in the submitted IDs lists.
+            // If we don't skip them, the 'else' blocks below would remove their permissions.
+            if (user.getId().equals(loggedUser.getId())) {
+                continue;
+            }
+
+            // 1. Handle "Vehicle Admin" Role (Developer)
+            if (vehicleAdminIds.contains(user.getId())) {
+                vehicle.addVehicleAdmin(user);
+                // Admins must be able to see the vehicle
+                if (!allowedUserIds.contains(user.getId())) {
+                    allowedUserIds.add(user.getId());
+                }
+            } else {
+                vehicle.removeVehicleAdmin(user);
+            }
+
+            // 2. Handle "Allowed" Visibility
+            if (allowedUserIds.contains(user.getId())) {
+                vehicle.allowUser(user);
+            } else {
+                vehicle.removeUserAccess(user);
+            }
+        }
+
+        vehicleRepository.save(vehicle);
+
+        return "redirect:/admin/vehicles/" + vehicleId + "/users?success";
+    }
+
+    @PostMapping("users/demote/{id}")
+    public String demoteAdminToUser(@PathVariable Long id,
+                                    @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser,
+                                    RedirectAttributes redirectAttributes) {
+
+        User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+        User targetUser = userRepository.findById(id).orElseThrow();
+
+        // 1. Security Check: Only OWNER can demote
+        if (!"OWNER".equals(loggedUser.getRole())) {
+            throw new AccessDeniedException("Pouze vlastník (OWNER) může odebírat oprávnění.");
+        }
+
+        // 2. Validate Target
+        if ("OWNER".equals(targetUser.getRole())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Nemůžete odebrat oprávnění vlastníkovi.");
+            return "redirect:/admin/users/" + id;
+        }
+
+        // 3. Perform Demotion
+        userService.changeRole(id, "USER");
+
+        redirectAttributes.addFlashAttribute("successMessage", "Uživateli byla odebrána administrátorská práva.");
+        return "redirect:/admin/usersList";
     }
 }

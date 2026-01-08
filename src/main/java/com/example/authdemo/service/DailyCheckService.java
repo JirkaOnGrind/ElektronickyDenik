@@ -41,4 +41,8 @@ public class DailyCheckService {
     public boolean existsDailyCheckForVehicleAndDate(Long vehicleId, LocalDate date) {
         return dailyCheckRepository.existsByVehicleIdAndCheckDate(vehicleId, date);
     }
+
+    public Optional<DailyCheck> findLastDefect(Vehicle vehicle) {
+        return dailyCheckRepository.findTopByVehicleAndOverallResultOrderByCheckDateDesc(vehicle, DailyCheck.Stav.ZAVAD);
+    }
 }

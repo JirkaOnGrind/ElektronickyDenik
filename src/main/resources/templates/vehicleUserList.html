@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="cs" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Správa oprávnění vozidla</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<th:block th:if="${user.role == 'ADMIN' || user.role == 'OWNER'}">
+    <div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
+</th:block>
+
+<th:block th:unless="${user.role == 'ADMIN' || user.role == 'OWNER'}">
+    <div th:replace="~{fragments/header :: mainHeader(title='Správa oprávnění')}"></div>
+</th:block>
+
+<div class="flex-grow container mx-auto px-4 py-8">
+
+    <div class="max-w-2xl mx-auto mb-6">
+        <a th:href="@{/home(vehicleId=${vehicle.id})}" class="text-gray-500 hover:text-gray-700 text-sm font-medium transition duration-150 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Zpět na detail vozidla
+        </a>
+    </div>
+
+    <div class="bg-white shadow-xl rounded-2xl overflow-hidden max-w-2xl mx-auto border border-gray-100">
+
+        <div class="bg-gray-50 px-8 py-8 border-b border-gray-200 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div class="h-20 w-20 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shadow-md flex-shrink-0">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                </svg>
+            </div>
+
+            <div class="text-center sm:text-left">
+                <h1 class="text-2xl font-bold text-gray-900" th:text="${vehicle.brand + ' ' + vehicle.type}"></h1>
+                <p class="text-gray-500 font-medium mt-1">
+                    Výrobní číslo: <span th:text="${vehicle.serialNumber}"></span>
+                </p>
+                <div class="mt-3">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200"
+                          th:text="${vehicle.category.displayName}">
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white">
+            <div class="bg-gray-50 px-8 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Oprávnění uživatelů</h2>
+                    <p class="text-xs text-gray-500">Nastavte viditelnost a práva správce.</p>
+                </div>
+                <div class="hidden sm:flex text-xs text-gray-500 gap-4">
+                    <span class="flex items-center gap-1"><div class="w-3 h-3 bg-blue-600 rounded-sm"></div> Viditelnost</span>
+                    <span class="flex items-center gap-1"><div class="w-3 h-3 bg-purple-600 rounded-sm"></div> Správce</span>
+                </div>
+            </div>
+
+            <div class="px-8 py-6">
+                <form th:action="@{/admin/vehicles/{vehicleId}/permissions(vehicleId=${vehicle.id})}" method="post">
+
+                    <div th:if="${users.empty}" class="text-center text-gray-500 py-4">
+                        V systému nejsou žádní uživatelé.
+                    </div>
+
+                    <div th:unless="${users.empty}" class="space-y-3">
+                        <div th:each="u : ${users}"
+                             class="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+
+                            <div class="flex items-center gap-3 flex-1 min-w-0 mr-4">
+                                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                    <span th:text="${#strings.substring(u.firstName,0,1) + #strings.substring(u.lastName,0,1)}"></span>
+                                </div>
+                                <div class="truncate">
+                                    <p class="text-sm font-bold text-gray-800 truncate" th:text="${u.firstName + ' ' + u.lastName}"></p>
+                                    <p class="text-xs text-gray-500 truncate" th:text="${u.email}"></p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 sm:gap-6">
+
+                                <label class="flex flex-col items-center cursor-pointer group w-14">
+                                    <span class="text-xs text-gray-400 font-semibold mb-1 group-hover:text-blue-600 transition">Vidět</span>
+                                    <input type="checkbox"
+                                           name="allowedUserIds"
+                                           th:value="${u.id}"
+                                           th:checked="${vehicle.allowedUsers.contains(u)}"
+                                           th:disabled="${u.role == 'ADMIN'}"
+                                           class="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded disabled:opacity-50 disabled:bg-gray-100 cursor-pointer disabled:cursor-not-allowed">
+                                </label>
+
+                                <label class="flex flex-col items-center cursor-pointer group w-14">
+                                    <span class="text-xs text-gray-400 font-semibold mb-1 group-hover:text-purple-600 transition">Správce</span>
+                                    <input type="checkbox"
+                                           name="vehicleAdminIds"
+                                           th:value="${u.id}"
+                                           th:checked="${vehicle.vehicleAdmins.contains(u)}"
+                                           th:disabled="${u.role == 'ADMIN'}"
+                                           class="focus:ring-purple-500 h-5 w-5 text-purple-600 border-gray-300 rounded disabled:opacity-50 disabled:bg-gray-100 cursor-pointer disabled:cursor-not-allowed">
+                                </label>
+
+                                <th:block th:if="${u.role == 'ADMIN'}">
+                                    <input type="hidden" name="allowedUserIds" th:value="${u.id}">
+                                    <input type="hidden" name="vehicleAdminIds" th:value="${u.id}">
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg shadow-sm transition duration-200 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Uložit změny
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> <footer th:replace="~{fragments/footer :: mainFooter}"></footer>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.example.authdemo.controller;
 
 import com.example.authdemo.model.Company;
+import com.example.authdemo.model.DailyCheck;
 import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
 import com.example.authdemo.service.*;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -159,7 +161,7 @@ public class AuthController {
 
         // Vytvoření uživatele
         User user = new User(firstName, lastName, email, phone, password, key);
-        user.setRole("ADMIN");
+        user.setRole("OWNER");
 
         // V controlleru
         String result = userService.registerUser(user);
@@ -223,24 +225,61 @@ public class AuthController {
                                Model model,
                                Authentication authentication) {
 
+        User currentUser = null;
         if (principal != null) {
             String email = principal.getName();
-            Optional<User> user = userService.findByEmail(email);
-            user.ifPresent(u -> model.addAttribute("user", u));
+            Optional<User> userOpt = userService.findByEmail(email);
+            if (userOpt.isPresent()) {
+                currentUser = userOpt.get();
+                model.addAttribute("user", currentUser);
+            }
         }
 
-        // Načtení vybraného vozíku
+        // 1. Fetch all available vehicles for the user
+        // We need this to know the count
+        List<Vehicle> availableVehicles = vehicleService.getVehiclesForCurrentUser(principal);
+        model.addAttribute("vehicleCount", availableVehicles.size());
+
+        // 2. Load selected vehicle
+        Vehicle selectedVehicle = null;
         if (vehicleId != null) {
             Optional<Vehicle> vehicle = vehicleService.getVehicleById(vehicleId);
-            vehicle.ifPresent(v -> model.addAttribute("selectedVehicle", v));
+            if (vehicle.isPresent()) {
+                selectedVehicle = vehicle.get();
+                model.addAttribute("selectedVehicle", selectedVehicle);
+            }
         }
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN"));
 
-        if (isAdmin) {
-            return "vehicleSpecificAdmin"; // Return admin view
+        // 3. AUTO-SELECT if only 1 vehicle exists and none is selected
+        if (selectedVehicle == null && availableVehicles.size() == 1) {
+            selectedVehicle = availableVehicles.get(0);
+            model.addAttribute("selectedVehicle", selectedVehicle);
         }
+        // -------------------------------------------------------------
+
+        // --- LOAD LAST DEFECT (Existing Logic) ---
+        if (selectedVehicle != null) {
+            Optional<DailyCheck> lastDefect = dailyCheckService.findLastDefect(selectedVehicle);
+            if (lastDefect.isPresent()) {
+                model.addAttribute("lastDefect", lastDefect.get());
+            }
+        }
+
+        // Role Logic (Admin/Owner/VehicleAdmin)
+        boolean isAdminOrOwner = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN") ||
+                        role.equals("OWNER") || role.equals("ROLE_OWNER"));
+
+        boolean isVehicleAdmin = false;
+        if (selectedVehicle != null && currentUser != null) {
+            isVehicleAdmin = selectedVehicle.getVehicleAdmins().contains(currentUser);
+        }
+
+        if (isAdminOrOwner || isVehicleAdmin) {
+            return "vehicleSpecificAdmin";
+        }
+
         model.addAttribute("pageTitle", "Domů");
         return "vehicleSpecificUser";
     }

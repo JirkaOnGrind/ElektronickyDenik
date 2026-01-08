@@ -74,7 +74,7 @@ public class UserService implements UserDetailsService {
         }
 
         // Kontrola klíče
-        if (!user.getRole().equals("ADMIN") && !companyRepository.existsByKey(user.getKey())) {
+        if (!user.getRole().equals("OWNER") && !companyRepository.existsByKey(user.getKey())) {
             return "invalid_key";
         }
 

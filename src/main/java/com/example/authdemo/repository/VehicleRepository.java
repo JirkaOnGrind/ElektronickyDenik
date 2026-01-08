@@ -15,6 +15,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findByType(String type);
     boolean existsBySerialNumber(String serialNumber);
     List<Vehicle> findByCompanyKey(String companyKey);
-    @Query("SELECT v FROM Vehicle v WHERE v.companyKey = :companyKey AND :user NOT MEMBER OF v.excludedUsers")
+
+    // CHANGED QUERY: Only select vehicles where the user IS in the allowedUsers list
+    @Query("SELECT v FROM Vehicle v WHERE v.companyKey = :companyKey AND :user MEMBER OF v.allowedUsers")
     List<Vehicle> findVisibleVehicles(@Param("companyKey") String companyKey, @Param("user") User user);
 }

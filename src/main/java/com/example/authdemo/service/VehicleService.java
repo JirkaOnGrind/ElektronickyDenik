@@ -44,12 +44,12 @@ public class VehicleService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2. Check Role
-        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
-            // Admin sees EVERYTHING in the company
+        // 2. Check Role (UPDATED: Include OWNER)
+        if ("ADMIN".equalsIgnoreCase(user.getRole()) || "OWNER".equalsIgnoreCase(user.getRole())) {
+            // Admin AND Owner see EVERYTHING in the company
             return vehicleRepository.findByCompanyKey(user.getKey());
         } else {
-            // Standard User sees only what is NOT forbidden
+            // Standard User sees only what is explicitly allowed (Whitelist)
             return vehicleRepository.findVisibleVehicles(user.getKey(), user);
         }
     }
@@ -84,14 +84,13 @@ public class VehicleService {
         User userToBan = userRepository.findById(userIdToBan)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Add user to the blacklist
-        vehicle.hideForUser(userToBan);
+        // REMOVE from allowed list
+        vehicle.removeUserAccess(userToBan);
 
-        // Save updates the join table automatically
         vehicleRepository.save(vehicle);
     }
 
-    // ADMIN ACTION: Show vehicle again
+    // ADMIN ACTION: Show vehicle (Grant Access)
     public void restoreAccessForUser(Long vehicleId, Long userIdToAllow) {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
@@ -99,7 +98,14 @@ public class VehicleService {
         User userToAllow = userRepository.findById(userIdToAllow)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        vehicle.showToUser(userToAllow);
+        // ADD to allowed list
+        vehicle.allowUser(userToAllow);
+
         vehicleRepository.save(vehicle);
+    }
+    public void deleteVehicle(Long vehicleId) {
+        // JPA will verify existence and handle Cascade delete of checks
+        vehicleRepository.deleteById(vehicleId);
+        System.out.println("Vozidlo s ID " + vehicleId + " bylo smazáno.");
     }
 }
