@@ -2,7 +2,7 @@
 <html lang="cs" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Denní kontrola vozíku</title>
+    <title>Záznam o údržbě</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -10,7 +10,6 @@
     <th:block th:if="${user.role == 'ADMIN' || user.role == 'OWNER'}">
         <div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
     </th:block>
-
     <th:block th:unless="${user.role == 'ADMIN' || user.role == 'OWNER'}">
         <div th:replace="~{fragments/header :: mainHeader(title=${pageTitle})}"></div>
     </th:block>
@@ -21,37 +20,34 @@
 
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 relative">
             <h1 class="text-2xl font-bold text-gray-800 text-center w-full md:absolute md:left-0 md:right-0 pointer-events-none">
-                Denní kontrola stroje
+                Záznam o údržbě a servisu
             </h1>
-
             <div class="hidden md:block"></div>
-
             <a th:if="${canViewHistory}"
-               th:href="@{/daily-check(vehicleId=${vehicle.id})}"
+               th:href="@{/maintenance(vehicleId=${vehicle.id})}"
                class="relative pointer-events-auto bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded shadow text-sm flex items-center gap-2 z-10 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Zobrazit historii
+                Historie údržby
             </a>
         </div>
 
-        <form th:action="@{/daily-check}" th:object="${dailyCheckForm}" method="post" class="space-y-6">
+        <form th:action="@{/maintenance}" th:object="${maintenanceForm}" method="post" class="space-y-6">
             <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Datum kontroly</label>
-                    <input type="date" th:field="*{checkDate}"
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Datum záznamu</label>
+                    <input type="date" th:field="*{maintenanceDate}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Automaticky dnešní datum - můžete změnit</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Stroj</label>
                     <p class="text-gray-800 font-semibold" th:text="${vehicle.brand + ' ' + vehicle.type}"></p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Obsluha</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Obsluha (záznam provedl)</label>
                     <p class="text-gray-800 font-semibold" th:text="${user.firstName + ' ' + user.lastName}"></p>
                 </div>
                 <div>
@@ -60,59 +56,39 @@
                 </div>
             </div>
 
-            <div th:if="${vehicle.category.name() == 'JERABY'}" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
-                <h2 class="text-xl font-semibold text-gray-800">Rozsah kontroly pro jeřáby</h2>
-                <ul class="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                    <li>Vizuální kontrola a stav konstrukce</li>
-                    <li>Lana, řetězy, háky, kladky</li>
-                    <li>Ovládání, stop tlačítko, signalizace</li>
-                    <li>Elektroinstalace, brzdy, chod naprázdno</li>
-                </ul>
-            </div>
-
-            <div th:if="${vehicle.category.name() == 'MOTOROVE_VYSOKOZDVIZNE_VOZIKY'}" class="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
-                <h2 class="text-xl font-semibold text-gray-800">Rozsah kontroly pro VZV</h2>
-                <ul class="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                    <li>Pneumatiky, vidlice, řízení, brzdy</li>
-                    <li>Osvětlení, signalizace, zvedací zařízení</li>
-                    <li>Provozní kapaliny, úniky</li>
-                </ul>
-            </div>
-
-            <div th:if="${vehicle.category.name() == 'STAVEBNI_STROJE'}" class="p-4 bg-purple-50 border border-purple-200 rounded-lg space-y-3">
-                <h2 class="text-xl font-semibold text-gray-800">Rozsah kontroly pro Stavební stroje</h2>
-                <ul class="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                    <li>Konstrukce, stav stroje, pneumatiky/pásy</li>
-                    <li>Kryty, kapaliny, funkce stroje</li>
-                    <li>Řízení, brzdy, pracovní zařízení</li>
-                </ul>
-            </div>
-
             <div class="p-4 bg-gray-50 rounded-lg space-y-4">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Výsledek kontroly</h2>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Výsledek údržby</h2>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Celkový výsledek</label>
                     <div class="flex space-x-6">
                         <label class="inline-flex items-center">
-                            <input type="radio" th:field="*{overallResult}" value="BEZ_ZAVAD" class="text-green-600 focus:ring-green-500" required>
+                            <input type="radio" th:field="*{result}" value="BEZ_ZAVAD" class="text-green-600 focus:ring-green-500" required>
                             <span class="ml-2 text-green-700 font-medium">Bez závad</span>
                         </label>
                         <label class="inline-flex items-center">
-                            <input type="radio" th:field="*{overallResult}" value="ZAVAD" class="text-red-600 focus:ring-red-500" required>
+                            <input type="radio" th:field="*{result}" value="ZAVAD" class="text-red-600 focus:ring-red-500" required>
                             <span class="ml-2 text-red-700 font-medium">Závada</span>
                         </label>
                     </div>
                 </div>
 
-                <div id="defects-description-wrapper" class="hidden">
+                <div id="description-wrapper" class="hidden">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Popis závad</label>
-                    <textarea th:field="*{defectsDescription}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Pokud byly zjištěny závady, popište je zde..."></textarea>
+                    <textarea th:field="*{description}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Popis provedené údržby nebo zjištěných závad..."></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-bold text-gray-800 mb-1">Následující revize</label>
+                    <input type="date" th:field="*{nextRevisionDate}"
+                           class="w-full md:w-1/2 px-3 py-2 border-2 border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50 text-gray-900 font-medium">
+                    <p class="text-xs text-gray-500 mt-1">Vyberte z kalendáře (vyplňte pouze pokud je známo datum příští revize)</p>
                 </div>
             </div>
 
             <div class="text-center">
                 <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition font-medium text-lg">
-                    Uložit kontrolu
+                    Uložit záznam
                 </button>
             </div>
         </form>
@@ -121,19 +97,24 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const defectsWrapper = document.getElementById('defects-description-wrapper');
-        const radioButtons = document.querySelectorAll('input[name="overallResult"]');
+        const descriptionWrapper = document.getElementById('description-wrapper');
+        const radioButtons = document.querySelectorAll('input[name="result"]');
+
         function updateVisibility() {
-            const checkedRadio = document.querySelector('input[name="overallResult"]:checked');
+            const checkedRadio = document.querySelector('input[name="result"]:checked');
+            // Zobrazit pole pokud je vybráno "ZAVAD"
             if (checkedRadio && checkedRadio.value === 'ZAVAD') {
-                defectsWrapper.classList.remove('hidden');
+                descriptionWrapper.classList.remove('hidden');
             } else {
-                defectsWrapper.classList.add('hidden');
+                descriptionWrapper.classList.add('hidden');
             }
         }
+
         radioButtons.forEach(function(radio) {
             radio.addEventListener('change', updateVisibility);
         });
+
+        // Spustit při načtení (pro případ, že prohlížeč si pamatuje stav po refresh)
         updateVisibility();
     });
 </script>
