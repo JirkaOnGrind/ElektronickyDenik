@@ -8,8 +8,7 @@ import java.time.LocalDate;
 @Data
 public class RevisionForm {
     private LocalDate revisionDate;
-    private RevisionFrequency frequency; // Dropdown
-    private String performedBy;          // Ruční zadání
+    private RevisionFrequency frequency;
     private RevisionResult result;
     private String description;
     private Long vehicleId;

@@ -78,7 +78,6 @@ public class RevisionController {
         model.addAttribute("revisionForm", form);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("user", user);
-        // Předáme hodnoty ENUMu do šablony pro dropdown
         model.addAttribute("frequencies", Revision.RevisionFrequency.values());
         model.addAttribute("pageTitle", "Nová revize");
 
@@ -94,11 +93,11 @@ public class RevisionController {
 
         Revision revision = new Revision();
         revision.setRevisionDate(form.getRevisionDate());
-        revision.setFrequency(form.getFrequency()); // Uložení četnosti
-        revision.setPerformedBy(form.getPerformedBy()); // Uložení "Provedl"
+        revision.setFrequency(form.getFrequency());
+        // revision.setPerformedBy(...) - ODSTRANĚNO
         revision.setResult(form.getResult());
         revision.setDescription(form.getDescription());
-        revision.setUser(user.get());
+        revision.setUser(user.get()); // Automaticky se uloží přihlášený uživatel
         revision.setVehicle(vehicle.get());
 
         revisionService.save(revision);

@@ -24,7 +24,7 @@
             <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Vybrat vozík</a>
         </div>
 
-        <div th:if="${selectedVehicle != null}" class="mt-4 p-4 rounded-lg max-w-md mx-auto">
+        <div th:if="${selectedVehicle != null and vehicleCount > 1}" class="mt-4 p-4 rounded-lg max-w-md mx-auto">
             <p class="text-blue-800 font-semibold">
                 Vybraný vozík:
                 <span th:text="${selectedVehicle.brand + ' ' + selectedVehicle.type + ' (' + selectedVehicle.serialNumber + ')'}"></span>

@@ -20,21 +20,23 @@ public class WebSecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Veřejné endpointy
                         .requestMatchers("/login", "/auth/**", "/register", "/css/**", "/js/**","/register/company","/api/**","/dev/**","/verification","/changePassword", "/auth/verification/**","/newPassword").permitAll()
                         .requestMatchers("/logo-provozni-denik.png").permitAll()
 
-                        // UPDATED: Allow both ADMIN and OWNER
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "OWNER")
-
-                        // New: Vehicle admins (USER role) can access specific endpoints
+                        // --- OPRAVA ZDE: Specifičtější pravidlo musí být PRVNÍ ---
+                        // Povolíme přístup přihlášeným uživatelům do sekce vozidel v adminu (konkrétní práva si řeší Controller)
                         .requestMatchers("/admin/vehicles/**").authenticated()
 
+                        // Ostatní admin věci jen pro ADMIN a OWNER
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "OWNER")
+
+                        // Vše ostatní pro přihlášené
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler((request, response, authentication) -> {
-                            // UPDATED: Check for ADMIN or OWNER role
                             boolean isAdminOrOwner = authentication.getAuthorities().stream()
                                     .map(a -> a.getAuthority())
                                     .anyMatch(role -> role.equals("ROLE_ADMIN") || role.equals("ROLE_OWNER"));

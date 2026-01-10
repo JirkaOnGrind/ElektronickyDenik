@@ -19,30 +19,26 @@ public class Revision {
     @Column(name = "revision_date", nullable = false)
     private LocalDate revisionDate;
 
-    // --- NOVÉ: Četnost kontroly (Enum) ---
     @Enumerated(EnumType.STRING)
     @Column(name = "frequency", nullable = false)
     private RevisionFrequency frequency;
 
-    // --- NOVÉ: Provedl (ruční doplnění jména technika) ---
-    @Column(name = "performed_by", nullable = false)
-    private String performedBy;
+    // Pole 'performedBy' ODSTRANĚNO. Používáme vazbu 'user'.
 
     @ManyToOne
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
-    // Toto je "Zaznamenal" (automaticky přihlášený uživatel)
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User user; // Toto pole nyní reprezentuje toho, kdo revizi provedl i zaznamenal
 
     @Enumerated(EnumType.STRING)
     @Column(name = "result", nullable = false)
     private RevisionResult result;
 
     @Column(name = "description", columnDefinition = "TEXT")
-    private String description; // Závady
+    private String description;
 
     // ENUMY
     public enum RevisionResult {

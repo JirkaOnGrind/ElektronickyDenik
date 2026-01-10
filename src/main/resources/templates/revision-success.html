@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-600">Provedl:</p>
-                    <p class="font-semibold italic" th:text="${revision.performedBy}"></p>
+                    <p class="font-semibold" th:text="${revision.user.firstName + ' ' + revision.user.lastName}"></p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-600">Výsledek:</p>

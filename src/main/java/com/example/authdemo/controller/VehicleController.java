@@ -9,9 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
@@ -78,21 +76,18 @@ public class VehicleController {
                         role.equals("OWNER") || role.equals("ROLE_OWNER"));
 
         if (isAdminOrOwner) {
-            // Admin/Owner gets the Admin View (Edit/Delete buttons)
-            // Admins generally want to see the list to manage/add vehicles, so no auto-redirect here.
             return "vehicle-list-admin";
         }
 
-        // --- NEW FEATURE: Auto-redirect for single vehicle ---
-        // If it is a regular USER and they have exactly 1 vehicle, skip the list.
+        // --- Auto-redirect for single vehicle ---
         if (vehicles.size() == 1) {
             return "redirect:/home?vehicleId=" + vehicles.get(0).getId();
         }
-        // -----------------------------------------------------
 
-        // Otherwise show the list (0 vehicles or 2+ vehicles)
         return "vehicle-list";
     }
+
+
 
     // --- DELETE ENDPOINT ---
     @PostMapping("/vehicles/delete")

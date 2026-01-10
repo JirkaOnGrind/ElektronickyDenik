@@ -86,7 +86,6 @@
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provedl</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Výsledek</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Závady</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zaznamenal</th>
             </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -95,7 +94,7 @@
 
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700" th:text="${rev.frequency.displayName}"></td>
 
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 italic" th:text="${rev.performedBy}"></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold" th:text="${rev.user.firstName + ' ' + rev.user.lastName}"></td>
 
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span th:if="${rev.result.name() == 'BEZ_ZAVAD'}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">BEZ ZÁVAD</span>
@@ -103,13 +102,9 @@
                 </td>
 
                 <td class="px-6 py-4 text-sm text-gray-500 break-words" th:text="${rev.description != null && !rev.description.isEmpty() ? rev.description : '-'}"></td>
-
-                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                    <div th:text="${rev.user.firstName} + ' ' + ${rev.user.lastName}"></div>
-                </td>
             </tr>
             <tr th:if="${revisions.empty}">
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Žádné revize v tomto období.</td>
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500">Žádné revize v tomto období.</td>
             </tr>
             </tbody>
         </table>

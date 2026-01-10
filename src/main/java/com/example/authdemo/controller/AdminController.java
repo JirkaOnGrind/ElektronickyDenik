@@ -263,35 +263,42 @@ public class AdminController {
     }
 
     // 1. Zobrazení seznamu uživatelů pro konkrétní vozidlo
+    // --- NOVÁ METODA PRO SPRÁVCE (Zobrazit uživatele/adminy vozíku) ---
+    // Toto řeší tvůj problém s tlačítkem "Správce"
     @GetMapping("/vehicles/{vehicleId}/users")
     public String vehicleUsersList(@PathVariable Long vehicleId,
                                    Model model,
                                    @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
 
+        // Načtení přihlášeného uživatele
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+
+        // Načtení vozidla
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
 
-        // Security Check
-        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole());
+        // KONTROLA OPRÁVNĚNÍ: Je uživatel Globální Admin NEBO Správce tohoto vozíku?
+        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole()) || "OWNER".equals(loggedUser.getRole());
         boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream()
                 .anyMatch(admin -> admin.getId().equals(loggedUser.getId()));
 
+        // Pokud vozidlo nepatří pod firmu uživatele NEBO uživatel nemá práva -> Access Denied
         if (!vehicle.getCompanyKey().equals(loggedUser.getKey()) || (!isGlobalAdmin && !isVehicleAdmin)) {
             throw new AccessDeniedException("Nemáte oprávnění spravovat toto vozidlo.");
         }
 
+        // Načtení seznamu uživatelů firmy
         List<User> companyUsers = userRepository.findByKeyAndDeletedAtIsNull(loggedUser.getKey());
 
-        // Remove self from list
+        // Odstranit sebe sama ze seznamu (aby si správce nemohl omylem zrušit práva)
         companyUsers.removeIf(u -> u.getId().equals(loggedUser.getId()));
 
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("users", companyUsers);
 
-        // --- ADD THIS LINE so the header knows who is logged in ---
+        // --- DŮLEŽITÉ: TENTO ŘÁDEK TAM MUSÍ BÝT, JINAK TO SPADNE ---
         model.addAttribute("user", loggedUser);
-        // ---------------------------------------------------------
+        // -----------------------------------------------------------
 
         return "vehicleUserList";
     }
