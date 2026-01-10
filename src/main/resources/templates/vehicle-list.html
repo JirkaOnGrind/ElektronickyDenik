@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Výběr vozíku</title>
+    <title th:text="${pageTitle}">Výběr vozíku</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -27,13 +27,13 @@
                 </p>
                 <a th:href="@{/home(vehicleId=${vehicle.id})}"
                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition inline-block w-full">
-                    Vybrat tento vozík
+                    Vybrat tento stroj
                 </a>
             </div>
         </div>
 
         <div th:if="${vehicles.empty}" class="text-center py-8 col-span-full">
-            <p class="text-gray-500 text-lg mb-4">Zatím nejsou žádné registrované vozíky.</p>
+            <p class="text-gray-500 text-lg mb-4">Zatím nejsou žádné registrované stroje.</p>
         </div>
     </div>
 </div>

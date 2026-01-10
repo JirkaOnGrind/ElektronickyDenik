@@ -16,20 +16,28 @@
 
 <div class="flex-grow container mx-auto px-4 py-8">
     <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Vítejte v systému</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2"
+            th:text="${selectedVehicle != null ? selectedVehicle.brand + ' ' + selectedVehicle.type : 'Vítejte v systému'}">
+            Vítejte v systému
+        </h1>
+
         <p class="text-gray-600" th:if="${user}">Přihlášen jako: <span th:text="${user.firstName + ' ' + user.lastName}"></span></p>
 
         <div th:if="${selectedVehicle == null}" class="mt-4 p-4 bg-yellow-50 rounded-lg max-w-md mx-auto">
-            <p class="text-yellow-800">Není vybrán žádný vozík</p>
-            <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Vybrat vozík</a>
+            <p class="text-yellow-800">Není vybrán žádný stroj</p>
+            <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Vybrat stroj</a>
         </div>
 
-        <div th:if="${selectedVehicle != null and vehicleCount > 1}" class="mt-4 p-4 rounded-lg max-w-md mx-auto">
-            <p class="text-blue-800 font-semibold">
-                Vybraný vozík:
+        <div th:if="${selectedVehicle != null and vehicleCount > 1}" class="mt-4 p-4 rounded-lg max-w-md mx-auto text-center">
+            <p class="text-blue-800 font-semibold mb-2">
+                Vybraný stroj:
                 <span th:text="${selectedVehicle.brand + ' ' + selectedVehicle.type + ' (' + selectedVehicle.serialNumber + ')'}"></span>
             </p>
-            <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Změnit vozík</a>
+
+            <a href="/vehicles/list"
+               class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition duration-200">
+                Změnit stroj
+            </a>
         </div>
     </div>
 
@@ -93,14 +101,14 @@
     <div th:if="${selectedVehicle != null}" class="max-w-6xl mx-auto border-t border-gray-200 pt-8 mt-8">
         <div class="flex justify-end">
             <form th:action="@{/vehicles/delete}" method="post"
-                  onsubmit="return confirm('Opravdu chcete nenávratně smazat toto vozidlo a všechny jeho záznamy?');">
+                  onsubmit="return confirm('Opravdu chcete nenávratně smazat tento stroj a všechny jeho záznamy?');">
                 <input type="hidden" name="vehicleId" th:value="${selectedVehicle.id}" />
                 <button type="submit"
                         class="bg-white text-red-600 border border-red-200 hover:bg-red-50 font-bold py-2 px-6 rounded-lg shadow-sm transition duration-200 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    Smazat vozidlo
+                    Smazat stroj
                 </button>
             </form>
         </div>

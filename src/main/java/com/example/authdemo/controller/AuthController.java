@@ -6,6 +6,7 @@ import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
 import com.example.authdemo.service.*;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.access.AccessDeniedException; // Import pro výjimku
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
@@ -30,14 +31,13 @@ public class AuthController {
     @Autowired
     private DailyCheckService dailyCheckService;
 
-    // INDEX NA LOGIN ------------------------------
     // --- INDEX - přesměrování na login ---
     @GetMapping("/")
     public String index() {
         return "redirect:/login";
     }
 
-    // USER ----------------------------------------
+    // USER LOGIN FORM
     @GetMapping("/login")
     public String loginForm(Model model, HttpSession session,
                             @RequestParam(required = false) String error,
@@ -55,55 +55,47 @@ public class AuthController {
         return "login";
     }
 
-    // --- REGISTER GET ---------------------------------------------------------
+    // --- REGISTER GET ---
     @GetMapping("/register")
     public String registerUserForm(Model model, HttpSession session) {
         model.addAttribute("pageTitle", "Register");
         return "registerUser";
     }
 
-    // --- REGISTER POST -----------------------------------------------------
+    // --- REGISTER POST ---
     @PostMapping("/auth/registerUser")
     public String registerUser(@RequestParam String firstName,
-                           @RequestParam String lastName,
-                           @RequestParam String email,
-                           @RequestParam String phone,
-                           @RequestParam String key,
-                           @RequestParam String password,
-                           @RequestParam String confirmPassword,
-                           @RequestParam boolean terms,
-                           @RequestParam boolean gdpr,
-                           Model model,
-                           HttpSession session)
-    {
-
+                               @RequestParam String lastName,
+                               @RequestParam String email,
+                               @RequestParam String phone,
+                               @RequestParam String key,
+                               @RequestParam String password,
+                               @RequestParam String confirmPassword,
+                               @RequestParam boolean terms,
+                               @RequestParam boolean gdpr,
+                               Model model,
+                               HttpSession session) {
         // Validace hesla
         if (!password.equals(confirmPassword)) {
             model.addAttribute("pageTitle", "Register");
             model.addAttribute("error", "Hesla se neshodují");
             return "registerUser";
         }
-
         // Validace souhlasů
         if (!terms || !gdpr) {
             model.addAttribute("pageTitle", "Register");
             model.addAttribute("error", "Je nutné souhlasit s obchodními podmínkami a GDPR");
             return "registerUser";
         }
-
-        // Vytvoření uživatele
         User user = new User(firstName, lastName, email, phone, password, key);
         String result = userService.registerUser(user);
         if ("success".equals(result)) {
             emailService.sendVerificationEmail(user);
-            // Uložení do session
             session.setAttribute("pendingVerificationUserId", user.getId());
             session.setAttribute("verificationAttempts", 0);
             return "redirect:/verification";
         } else {
             model.addAttribute("pageTitle", "Register");
-
-            // Rozlišení typu chyby podle vráceného stringu
             if ("email_exists".equals(result)) {
                 model.addAttribute("error", "Email již existuje");
             } else if ("phone_exists".equals(result)) {
@@ -113,19 +105,18 @@ public class AuthController {
             } else {
                 model.addAttribute("error", "Došlo k chybě při registraci");
             }
-
             return "registerUser";
         }
     }
 
-    // REGISTER USER ----------------------------------------------------------
+    // REGISTER COMPANY GET
     @GetMapping("/register/company")
     public String registerCompanyForm(Model model, HttpSession session) {
         model.addAttribute("pageTitle", "Register");
         return "registerCompany";
     }
 
-    // --- REGISTER COMPANY POST -----------------------------------------------------
+    // --- REGISTER COMPANY POST ---
     @PostMapping("/auth/registerCompany")
     public String registerCompany(@RequestParam String companyName,
                                   @RequestParam String ico,
@@ -141,72 +132,33 @@ public class AuthController {
                                   @RequestParam boolean terms,
                                   @RequestParam boolean gdpr,
                                   Model model,
-                                  HttpSession session)
-    {
-
-        // USER
-        // Validace hesla
+                                  HttpSession session) {
         if (!password.equals(confirmPassword)) {
-            model.addAttribute("pageTitle", "Register");
+            model.addAttribute("pageTitle", "Registrace společnosti");
             model.addAttribute("error", "Hesla se neshodují");
-            return "registerUser";
+            return "registerCompany";
         }
-
-        // Validace souhlasů
         if (!terms || !gdpr) {
-            model.addAttribute("pageTitle", "Register");
+            model.addAttribute("pageTitle", "Registrace společnosti");
             model.addAttribute("error", "Je nutné souhlasit s obchodními podmínkami a GDPR");
-            return "registerUser";
+            return "registerCompany";
         }
 
-        // Vytvoření uživatele
         User user = new User(firstName, lastName, email, phone, password, key);
         user.setRole("OWNER");
 
-        // V controlleru
         String result = userService.registerUser(user);
         if (!result.equals("success")) {
             model.addAttribute("pageTitle", "Register");
-
             switch(result) {
-                case "email_exists":
-                    model.addAttribute("error", "Email již existuje");
-                    break;
-                case "phone_exists":
-                    model.addAttribute("error", "Telefonní číslo již existuje");
-                    break;
-                case "invalid_key":
-                    model.addAttribute("error", "Špatný klíč");
-                    break;
+                case "email_exists": model.addAttribute("error", "Email již existuje"); break;
+                case "phone_exists": model.addAttribute("error", "Telefonní číslo již existuje"); break;
+                case "invalid_key": model.addAttribute("error", "Špatný klíč"); break;
             }
             return "registerCompany";
         }
 
-        // COMPANY
-        // Validace hesla
-        if (!password.equals(confirmPassword)) {
-            model.addAttribute("pageTitle", "Registrace společnosti");
-            model.addAttribute("error", "Hesla se neshodují");
-            return "registerCompany";
-        }
-
-        // Validace souhlasů
-        if (!terms || !gdpr) {
-            model.addAttribute("pageTitle", "Registrace společnosti");
-            model.addAttribute("error", "Je nutné souhlasit s obchodními podmínkami a GDPR");
-            return "registerCompany";
-        }
-
-        // Validace IČO (základní kontrola - můžete přidat komplexnější validaci)
-        if (ico == null || ico.trim().isEmpty()) {
-            model.addAttribute("pageTitle", "Registrace společnosti");
-            model.addAttribute("error", "IČO je povinné pole");
-            return "registerCompany";
-        }
-
-        // Vytvoření společnosti
         Company company = new Company(companyName, ico, address, dic, user.getId(), key);
-
         if (companyService.registerCompany(company)) {
             emailService.sendVerificationEmail(user);
             session.setAttribute("pendingVerificationUserId", user.getId());
@@ -218,6 +170,7 @@ public class AuthController {
             return "registerCompany";
         }
     }
+
     // HOME -----------------------------------------------------------
     @GetMapping("/home")
     public String showHomePage(@RequestParam(value = "vehicleId", required = false) Long vehicleId,
@@ -235,17 +188,39 @@ public class AuthController {
             }
         }
 
-        // 1. Fetch all available vehicles for the user
-        // We need this to know the count
+        if (currentUser == null) return "redirect:/login";
+
+        // 1. Fetch available vehicles (needed for count)
         List<Vehicle> availableVehicles = vehicleService.getVehiclesForCurrentUser(principal);
         model.addAttribute("vehicleCount", availableVehicles.size());
 
-        // 2. Load selected vehicle
+        // 2. Load selected vehicle & SECURITY CHECK
         Vehicle selectedVehicle = null;
         if (vehicleId != null) {
-            Optional<Vehicle> vehicle = vehicleService.getVehicleById(vehicleId);
-            if (vehicle.isPresent()) {
-                selectedVehicle = vehicle.get();
+            Optional<Vehicle> vehicleOpt = vehicleService.getVehicleById(vehicleId);
+
+            if (vehicleOpt.isPresent()) {
+                Vehicle v = vehicleOpt.get();
+
+                // --- SECURITY CHECK START ---
+                // a) Kontrola firemního klíče (Základní bariéra)
+                if (!v.getCompanyKey().equals(currentUser.getKey())) {
+                    // Uživatel se snaží dostat na stroj cizí firmy -> Vyhodíme ho
+                    return "redirect:/vehicles/list?error=access_denied";
+                }
+
+                // b) Kontrola oprávnění (Viditelnost / Admin / Owner / VehicleAdmin)
+                boolean isGlobalAdmin = "ADMIN".equals(currentUser.getRole()) || "OWNER".equals(currentUser.getRole());
+                boolean isVehicleAdmin = v.getVehicleAdmins().contains(currentUser);
+                boolean isAllowedUser = v.getAllowedUsers().contains(currentUser);
+
+                // Pokud není Admin, není Správce vozíku A NEMÁ povolenou viditelnost -> Vyhodíme ho
+                if (!isGlobalAdmin && !isVehicleAdmin && !isAllowedUser) {
+                    return "redirect:/vehicles/list?error=access_denied";
+                }
+                // --- SECURITY CHECK END ---
+
+                selectedVehicle = v;
                 model.addAttribute("selectedVehicle", selectedVehicle);
             }
         }
@@ -253,11 +228,11 @@ public class AuthController {
         // 3. AUTO-SELECT if only 1 vehicle exists and none is selected
         if (selectedVehicle == null && availableVehicles.size() == 1) {
             selectedVehicle = availableVehicles.get(0);
+            // Pro jistotu zde také můžeme provést check, ale getVehiclesForCurrentUser už filtruje
             model.addAttribute("selectedVehicle", selectedVehicle);
         }
-        // -------------------------------------------------------------
 
-        // --- LOAD LAST DEFECT (Existing Logic) ---
+        // --- LOAD LAST DEFECT ---
         if (selectedVehicle != null) {
             Optional<DailyCheck> lastDefect = dailyCheckService.findLastDefect(selectedVehicle);
             if (lastDefect.isPresent()) {
@@ -272,7 +247,7 @@ public class AuthController {
                         role.equals("OWNER") || role.equals("ROLE_OWNER"));
 
         boolean isVehicleAdmin = false;
-        if (selectedVehicle != null && currentUser != null) {
+        if (selectedVehicle != null) {
             isVehicleAdmin = selectedVehicle.getVehicleAdmins().contains(currentUser);
         }
 
@@ -284,19 +259,10 @@ public class AuthController {
         return "vehicleSpecificUser";
     }
 
-
-    // --- ADMIN ---
-    @GetMapping("/admin/dashboard")
-    public String logout(HttpSession session,Model model) {
-        model.addAttribute("pageTitle", "Register");
-        return "homeAdmin";
-    }
-
     // --- LOGOUT ---
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/login";
     }
-
 }

@@ -79,7 +79,7 @@ public class MaintenanceController {
         model.addAttribute("maintenanceForm", form);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("user", user);
-        model.addAttribute("pageTitle", "Záznam o údržbě");
+        model.addAttribute("pageTitle", "Nový záznam");
 
         return "maintenance-form";
     }
@@ -113,7 +113,13 @@ public class MaintenanceController {
 
         Optional<MaintenanceRecord> record = maintenanceService.findById(recordId);
         if (record.isPresent()) {
-            model.addAttribute("record", record.get());
+            MaintenanceRecord r = record.get();
+            model.addAttribute("record", r);
+
+            // --- PŘIDÁNO: ID vozidla pro tlačítko "Domů" ---
+            model.addAttribute("vehicleId", r.getVehicle().getId());
+            // -----------------------------------------------
+
             model.addAttribute("pageTitle", "Údržba uložena");
             model.addAttribute("RESULT", MaintenanceRecord.MaintenanceResult.class);
         }

@@ -1,7 +1,9 @@
 package com.example.authdemo.controller;
 
+import com.example.authdemo.model.Company;
 import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
+import com.example.authdemo.service.CompanyService;
 import com.example.authdemo.service.UserService;
 import com.example.authdemo.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,8 @@ public class VehicleController {
     private UserService userService;
     @Autowired
     private VehicleService vehicleService;
+    @Autowired
+    private CompanyService companyService; // Přidáno pro získání názvu firmy
 
     @GetMapping("/vehicles/register")
     public String showVehicleRegistrationForm(Model model) {
@@ -66,10 +70,22 @@ public class VehicleController {
         // 1. Fetch vehicles (Service handles permissions)
         List<Vehicle> vehicles = vehicleService.getVehiclesForCurrentUser(principal);
 
-        model.addAttribute("pageTitle", "Všechny vozíky");
+        // 2. NASTAVENÍ NÁZVU FIRMY MÍSTO "Všechny vozíky"
+        String pageTitle = "Všechny vozíky"; // Default
+        if (principal != null) {
+            User user = userService.findByEmail(principal.getName()).orElse(null);
+            if (user != null) {
+                Optional<Company> company = companyService.findByKey(user.getKey());
+                if (company.isPresent()) {
+                    pageTitle = company.get().getCompanyName();
+                }
+            }
+        }
+
+        model.addAttribute("pageTitle", pageTitle);
         model.addAttribute("vehicles", vehicles);
 
-        // 2. Check Permissions (Admin / Owner)
+        // 3. Check Permissions (Admin / Owner)
         boolean isAdminOrOwner = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN") ||
@@ -86,8 +102,6 @@ public class VehicleController {
 
         return "vehicle-list";
     }
-
-
 
     // --- DELETE ENDPOINT ---
     @PostMapping("/vehicles/delete")

@@ -52,10 +52,11 @@
                 Nová kontrola
             </a>
 
-            <a href="/home"
+            <a th:href="@{/home(vehicleId=${vehicleId})}"
                class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-medium">
-                Zpět na hlavní stránku
+                Domů
             </a>
+
 
             <a th:href="@{/daily-check(vehicleId=${dailyCheck.vehicle.id})}"
                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium">

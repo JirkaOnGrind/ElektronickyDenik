@@ -85,7 +85,7 @@ public class DailyCheckController {
         model.addAttribute("dailyCheckForm", dailyCheckForm);
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("user", user);
-        model.addAttribute("pageTitle", "Denní kontrola vozíku");
+        model.addAttribute("pageTitle", "Nová kontrola");
 
         return "daily-check-form";
     }
@@ -116,9 +116,9 @@ public class DailyCheckController {
     @GetMapping("/success")
     public String showSuccessPage(@RequestParam Long checkId,
                                   Model model,
-                                  Principal principal) { // 1. Add Principal parameter
+                                  Principal principal) {
 
-        // 2. Load the logged-in User
+        // 1. Načtení přihlášeného uživatele (pro hlavičku)
         if (principal != null) {
             Optional<User> userOpt = userService.findByEmail(principal.getName());
             userOpt.ifPresent(user -> model.addAttribute("user", user));
@@ -126,16 +126,19 @@ public class DailyCheckController {
 
         Optional<DailyCheck> dailyCheck = dailyCheckService.getDailyCheckById(checkId);
         if (dailyCheck.isPresent()) {
-            model.addAttribute("dailyCheck", dailyCheck.get());
+            DailyCheck check = dailyCheck.get();
+            model.addAttribute("dailyCheck", check);
+
+            // --- PŘIDÁNO: ID vozidla pro tlačítko "Domů" ---
+            model.addAttribute("vehicleId", check.getVehicle().getId());
+            // -----------------------------------------------
+
             model.addAttribute("pageTitle", "Kontrola uložena");
+
+            // TOTO ZŮSTÁVÁ (pro správné zobrazení v šabloně)
             model.addAttribute("STAV", DailyCheck.Stav.class);
         }
 
         return "daily-check-success";
-    }
-
-    public enum Stav {
-        ZAVAD,
-        BEZ_ZAVAD
     }
 }

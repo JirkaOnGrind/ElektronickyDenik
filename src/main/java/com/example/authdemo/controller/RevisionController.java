@@ -110,9 +110,15 @@ public class RevisionController {
         if (principal != null) {
             userService.findByEmail(principal.getName()).ifPresent(u -> model.addAttribute("user", u));
         }
-        Optional<Revision> revision = revisionService.findById(revisionId);
-        if (revision.isPresent()) {
-            model.addAttribute("revision", revision.get());
+        Optional<Revision> revisionOpt = revisionService.findById(revisionId);
+        if (revisionOpt.isPresent()) {
+            Revision revision = revisionOpt.get();
+            model.addAttribute("revision", revision);
+
+            // --- PŘIDÁNO: ID vozidla pro tlačítko "Domů" ---
+            model.addAttribute("vehicleId", revision.getVehicle().getId());
+            // -----------------------------------------------
+
             model.addAttribute("pageTitle", "Revize uložena");
         }
         return "revision-success";

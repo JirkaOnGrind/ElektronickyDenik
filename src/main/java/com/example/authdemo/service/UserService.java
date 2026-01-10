@@ -44,6 +44,13 @@ public class UserService implements UserDetailsService {
 
         User user = dbUser.get();
 
+        // --- OPRAVA ZDE: KONTROLA SMAZANÉHO ÚČTU (SOFT DELETE) ---
+        if (user.getDeletedAt() != null) {
+            System.out.println("⛔ Pokus o přihlášení smazaného uživatele: " + username);
+            throw new DisabledException("Tento účet byl smazán.");
+        }
+        // ---------------------------------------------------------
+
         if (!user.isVerificated()) {
             System.out.println("Pokus o přihlášení neověřeného uživatele: " + username);
             throw new DisabledException("User is not verified: " + username);

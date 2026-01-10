@@ -91,10 +91,21 @@
                 </div>
             </div>
 
-            <div class="text-center">
-                <button type="submit" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition font-medium text-lg">
+            <div class="flex items-center justify-between mt-6">
+                <button type="submit"
+                        class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                     Uložit revizi
                 </button>
+
+                <a th:href="@{/home(vehicleId=${vehicle.id})}"
+                   class="inline-flex items-center justify-center
+              bg-gray-500 hover:bg-gray-600
+              text-white font-bold
+              py-2 px-6 rounded
+              shadow
+              transition duration-200">
+                    Zpět na vozidlo
+                </a>
             </div>
         </form>
     </div>

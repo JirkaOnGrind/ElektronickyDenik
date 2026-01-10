@@ -11,20 +11,28 @@
 
 <div class="flex-grow container mx-auto px-4 py-8">
     <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Vítejte v systému</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2"
+            th:text="${selectedVehicle != null ? selectedVehicle.brand + ' ' + selectedVehicle.type : 'Vítejte v systému'}">
+            Vítejte v systému
+        </h1>
+
         <p class="text-gray-600" th:if="${user}">Přihlášen jako: <span th:text="${user.firstName + ' ' + user.lastName}"></span></p>
 
         <div th:if="${selectedVehicle == null}" class="mt-4 p-4 bg-yellow-50 rounded-lg max-w-md mx-auto">
-            <p class="text-yellow-800">Není vybrán žádný vozík</p>
-            <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Vybrat vozík</a>
+            <p class="text-yellow-800">Není vybrán žádný stroj</p>
+            <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Vybrat stroj</a>
         </div>
 
-        <div th:if="${selectedVehicle != null and vehicleCount > 1}" class="mt-4 p-4 rounded-lg max-w-md mx-auto">
-            <p class="text-blue-800 font-semibold">
-                Vybraný vozík:
+        <div th:if="${selectedVehicle != null and vehicleCount > 1}" class="mt-4 p-4 rounded-lg max-w-md mx-auto text-center">
+            <p class="text-blue-800 font-semibold mb-2">
+                Vybraný stroj:
                 <span th:text="${selectedVehicle.brand + ' ' + selectedVehicle.type + ' (' + selectedVehicle.serialNumber + ')'}"></span>
             </p>
-            <a href="/vehicles/list" class="text-blue-600 underline text-sm mt-2 inline-block">Změnit vozík</a>
+
+            <a href="/vehicles/list"
+               class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition duration-200">
+                Změnit stroj
+            </a>
         </div>
     </div>
 

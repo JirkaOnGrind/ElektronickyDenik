@@ -10,4 +10,5 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
     Optional<Company> findByKey(String key);
     boolean existsByKey(String key);
     Optional<Company> findByAdmin(Long adminId);
+
 }

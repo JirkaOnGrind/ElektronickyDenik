@@ -21,15 +21,6 @@
 
 <div class="flex-grow container mx-auto px-4 py-8">
 
-    <div class="max-w-2xl mx-auto mb-6">
-        <a th:href="@{/home(vehicleId=${vehicle.id})}" class="text-gray-500 hover:text-gray-700 text-sm font-medium transition duration-150 flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Zpět na detail vozidla
-        </a>
-    </div>
-
     <div class="bg-white shadow-xl rounded-2xl overflow-hidden max-w-2xl mx-auto border border-gray-100">
 
         <div class="bg-gray-50 px-8 py-8 border-b border-gray-200 flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -115,19 +106,43 @@
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-end">
+                    <div class="mt-8 flex justify-start gap-4">
                         <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg shadow-sm transition duration-200 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                class="inline-flex items-center justify-center gap-2
+                                       bg-blue-600 hover:bg-blue-700
+                                       text-white font-semibold
+                                       py-2 px-8 rounded-lg
+                                       shadow-sm
+                                       transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-4 w-4"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M5 13l4 4L19 7" />
                             </svg>
                             Uložit změny
                         </button>
+
+                        <a th:href="@{/home(vehicleId=${vehicle.id})}"
+                           class="inline-flex items-center justify-center
+                                  bg-gray-500 hover:bg-gray-600
+                                  text-white font-bold
+                                  py-2 px-6 rounded
+                                  shadow
+                                  transition duration-200">
+                            Zpět na vozidlo
+                        </a>
                     </div>
+
                 </form>
             </div>
         </div>
     </div>
-</div> <footer th:replace="~{fragments/footer :: mainFooter}"></footer>
+</div>
+<footer th:replace="~{fragments/footer :: mainFooter}"></footer>
 </body>
 </html>
