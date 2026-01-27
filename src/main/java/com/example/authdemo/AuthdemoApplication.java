@@ -1,5 +1,6 @@
 package com.example.authdemo;
 
+import com.example.authdemo.config.SimpleSshTunnel;
 import com.example.authdemo.model.User;
 import com.example.authdemo.repository.UserRepository;
 import com.example.authdemo.service.EmailService;
@@ -20,6 +21,7 @@ import java.util.List;
 public class AuthdemoApplication {
     private EmailService emailService;
     public static void main(String[] args) {
+        SimpleSshTunnel.start();
         SpringApplication.run(AuthdemoApplication.class, args);
 
     }
