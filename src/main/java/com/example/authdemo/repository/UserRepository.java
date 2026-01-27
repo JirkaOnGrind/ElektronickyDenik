@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRoleAndKeyAndDeletedAtIsNull(String role, String key);
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
+    List<User> findByRoleNot(String role);
     @Modifying
     @Transactional
     @Query("DELETE FROM User u WHERE u.verificated = false AND u.termsAcceptedAt < :threshold")

@@ -97,9 +97,17 @@ public class AdminController {
             throw new AccessDeniedException("Nemáte oprávnění přistupovat k seznamu uživatelů.");
         }
 
+        // 1. Načíst uživatele se stejným klíčem (firmou)
         List<User> users = userRepository.findByKeyAndDeletedAtIsNull(loggedUser.getKey());
+
+        // 2. Odebrat sebe sama ze seznamu
         users.removeIf(u -> u.getId().equals(loggedUser.getId()));
 
+        // --- TOTO PŘIDEJ: Nikdo (ani OWNER) nesmí v seznamu vidět SUPER_ADMINa ---
+        users.removeIf(u -> "SUPER_ADMIN".equals(u.getRole()));
+        // -------------------------------------------------------------------------
+
+        // 3. Specifická pravidla pro ADMINa (nevidí OWNERa a jiné ADMINy)
         if ("ADMIN".equals(loggedUser.getRole())) {
             users.removeIf(u -> "OWNER".equals(u.getRole()) || "ADMIN".equals(u.getRole()));
         }
