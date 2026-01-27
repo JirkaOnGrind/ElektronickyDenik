@@ -4,8 +4,8 @@ import com.example.authdemo.model.Company;
 import com.example.authdemo.model.User;
 import com.example.authdemo.repository.CompanyRepository;
 import com.example.authdemo.repository.UserRepository;
+import com.example.authdemo.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional; // TENTO IMPORT CHYBĚL
 
 @Controller
 @RequestMapping("/super-admin")
@@ -26,13 +27,12 @@ public class SuperAdminController {
     @Autowired
     private UserRepository userRepository;
 
-    // Zobrazení seznamu všech firem
+    @Autowired
+    private CompanyService companyService;
+
     @GetMapping("/dashboard")
     public String dashboard(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
-        // Načteme všechny firmy
         List<Company> companies = companyRepository.findAll();
-
-        // Načteme aktuálně přihlášeného Super Admina pro zobrazení jména
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
 
         model.addAttribute("companies", companies);
@@ -42,7 +42,6 @@ public class SuperAdminController {
         return "superAdminDashboard";
     }
 
-    // Akce pro přepnutí do konkrétní firmy
     @GetMapping("/switch-company/{companyId}")
     public String switchCompany(@PathVariable Long companyId,
                                 @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser,
@@ -56,16 +55,28 @@ public class SuperAdminController {
             return "redirect:/super-admin/dashboard";
         }
 
-        // --- CORE LOGIKA ---
-        // Změníme klíč Super Admina na klíč vybrané firmy.
-        // Tím pádem pro zbytek systému (AdminController, VehicleService) bude vypadat,
-        // jako že patří do této firmy.
         loggedUser.setKey(targetCompany.getKey());
         userRepository.save(loggedUser);
 
         redirectAttributes.addFlashAttribute("successMessage", "Byli jste přepnuti do firmy: " + targetCompany.getCompanyName());
-
-        // Přesměrujeme ho rovnou do Admin Dashboardu té firmy
         return "redirect:/admin/dashboard";
+    }
+
+    // Metoda pro smazání firmy
+    @GetMapping("/delete-company/{companyId}")
+    public String deleteCompany(@PathVariable Long companyId, RedirectAttributes redirectAttributes) {
+        try {
+            Optional<Company> companyOpt = companyRepository.findById(companyId);
+            if (companyOpt.isPresent()) {
+                // Voláme service pro kompletní promazání (včetně uživatelů)
+                companyService.deleteFullCompany(companyId);
+                redirectAttributes.addFlashAttribute("successMessage", "Firma i s uživateli byla úspěšně smazána.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Firma nebyla nalezena.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Chyba při mazání: " + e.getMessage());
+        }
+        return "redirect:/super-admin/dashboard";
     }
 }

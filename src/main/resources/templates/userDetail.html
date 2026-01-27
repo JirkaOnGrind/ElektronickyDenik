@@ -27,7 +27,7 @@
 
         <div class="bg-gray-50 px-8 py-8 border-b border-gray-200 flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div class="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
-                <span th:text="${#strings.substring(user.firstName,0,1) + #strings.substring(user.lastName,0,1)}">JD</span>
+                <span th:text="${#strings.substring(user.firstName,0,1) + #strings.substring(user.lastName,0,1)}"></span>
             </div>
 
             <div class="text-center sm:text-left">
@@ -35,7 +35,7 @@
                 <p class="text-gray-500 font-medium mt-1" th:text="${user.email}"></p>
 
                 <div class="mt-3">
-                    <span th:class="${user.role == 'ADMIN'} ?
+                    <span th:class="${user.role == 'ADMIN' or user.role == 'OWNER'} ?
                           'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200' :
                           'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200'">
                         <svg class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        <div class="bg-white border-t border-gray-100">
+        <div th:if="${user.role == 'USER'}" class="bg-white border-t border-gray-100">
             <div class="bg-gray-50 px-8 py-4 border-b border-gray-200 flex justify-between items-center">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900">Přístup k vozidlům</h2>
@@ -84,7 +84,6 @@
 
             <div class="px-8 py-6">
                 <form th:action="@{/admin/users/{userId}/permissions(userId=${user.id})}" method="post">
-
                     <div th:if="${vehicles.empty}" class="text-center text-gray-500 py-4">
                         V systému nejsou žádná vozidla.
                     </div>
@@ -92,7 +91,6 @@
                     <div th:unless="${vehicles.empty}" class="space-y-3">
                         <div th:each="vehicle : ${vehicles}"
                              class="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
-
                             <div class="flex items-center gap-3 flex-1 min-w-0 mr-4">
                                 <div class="h-8 w-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,25 +102,16 @@
                                     <p class="text-xs text-gray-500 truncate" th:text="${'S/N: ' + vehicle.serialNumber}"></p>
                                 </div>
                             </div>
-
                             <div class="flex items-center gap-4 sm:gap-6">
-
                                 <label class="flex flex-col items-center cursor-pointer group w-14">
                                     <span class="text-xs text-gray-400 font-semibold mb-1 group-hover:text-blue-600 transition">Vidět</span>
-                                    <input type="checkbox"
-                                           name="allowedVehicleIds"
-                                           th:value="${vehicle.id}"
-                                           th:checked="${vehicle.allowedUsers.contains(user)}"
+                                    <input type="checkbox" name="allowedVehicleIds" th:value="${vehicle.id}" th:checked="${vehicle.allowedUsers.contains(user)}"
                                            class="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded cursor-pointer">
                                 </label>
-
                                 <label class="flex flex-col items-center cursor-pointer group w-14">
                                     <span class="text-xs text-gray-400 font-semibold mb-1 group-hover:text-purple-600 transition">Správce</span>
-                                    <input type="checkbox"
-                                           name="vehicleAdminIds"
-                                           th:value="${vehicle.id}"
-                                           th:checked="${vehicle.vehicleAdmins.contains(user)}"
-                                           class="focus:ring-purple-500 h-5 w-5 text-purple-600 border-gray-300 rounded cursor-pointer">
+                                    <input type="checkbox" name="vehicleAdminIds" th:value="${vehicle.id}" th:checked="${vehicle.vehicleAdmins.contains(user)}"
+                                           class="focus:ring-purple-600 h-5 w-5 text-purple-600 border-gray-300 rounded cursor-pointer">
                                 </label>
                             </div>
                         </div>
@@ -143,7 +132,7 @@
 
         <div class="bg-gray-50 px-8 py-5 border-t border-gray-200 flex flex-col sm:flex-row justify-end items-center gap-3">
 
-            <form th:if="${loggedUser.role == 'OWNER' and user.role == 'USER'}"
+            <form th:if="${(loggedUser.role == 'OWNER' or loggedUser.role == 'SUPER_ADMIN') and user.role == 'USER'}"
                   th:action="@{/admin/users/promote/{id}(id=${user.id})}" method="post">
                 <button type="submit"
                         class="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-200">
@@ -154,7 +143,7 @@
                 </button>
             </form>
 
-            <form th:if="${loggedUser.role == 'OWNER' and user.role == 'ADMIN'}"
+            <form th:if="${(loggedUser.role == 'OWNER' or loggedUser.role == 'SUPER_ADMIN') and user.role == 'ADMIN'}"
                   th:action="@{/admin/users/demote/{id}(id=${user.id})}" method="post"
                   onsubmit="return confirm('Opravdu chcete tomuto uživateli odebrat administrátorská práva?');">
                 <button type="submit"
@@ -178,9 +167,9 @@
                 </button>
             </form>
 
-            <div th:if="${loggedUser.role == 'ADMIN' and user.role == 'ADMIN'}"
+            <div th:if="${loggedUser.role == 'ADMIN' and (user.role == 'ADMIN' or user.role == 'OWNER')}"
                  class="text-xs text-gray-400 italic">
-                Nemáte oprávnění spravovat jiného administrátora.
+                Nemáte oprávnění spravovat tohoto uživatele.
             </div>
         </div>
     </div>

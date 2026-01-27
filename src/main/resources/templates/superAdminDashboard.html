@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title th:text="${pageTitle}">Super Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
@@ -26,36 +27,81 @@
             Zatím nejsou registrovány žádné společnosti.
         </div>
 
-        <table th:unless="${companies.empty}" class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-            <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Název společnosti</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">IČO</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Klíč</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Adresa</th>
-                <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Akce</th>
-            </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-            <tr th:each="company : ${companies}" class="hover:bg-blue-50 transition duration-150">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-bold text-gray-900" th:text="${company.companyName}"></div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" th:text="${company.ico}"></td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500" th:text="${company.key}"></td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" th:text="${company.address}"></td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a th:href="@{/super-admin/switch-company/{id}(id=${company.id})}"
-                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                        </svg>
-                        Spravovat
-                    </a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div th:unless="${companies.empty}">
+            <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Název společnosti</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">IČO</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Klíč</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Adresa</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Akce</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="company : ${companies}" class="hover:bg-blue-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-gray-900" th:text="${company.companyName}"></div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" th:text="${company.ico}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500" th:text="${company.key}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600" th:text="${company.address}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <a th:href="@{/super-admin/switch-company/{id}(id=${company.id})}"
+                                   class="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                    </svg>
+                                    Spravovat
+                                </a>
+                                <a th:href="@{/super-admin/delete-company/{id}(id=${company.id})}"
+                                   onclick="return confirm('Opravdu chcete smazat tuto firmu a všechny její uživatele?')"
+                                   class="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 shadow-sm transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Smazat
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="md:hidden divide-y divide-gray-200">
+                <div th:each="company : ${companies}" class="p-4 space-y-3 hover:bg-gray-50 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-lg font-bold text-gray-900" th:text="${company.companyName}"></div>
+                            <div class="text-sm text-gray-500" th:text="'IČO: ' + ${company.ico}"></div>
+                        </div>
+                        <div class="bg-gray-100 px-2 py-1 rounded text-[10px] font-mono text-gray-500" th:text="${company.key}"></div>
+                    </div>
+
+                    <div class="text-sm text-gray-600">
+                        <span class="font-semibold">Adresa:</span>
+                        <span th:text="${company.address}"></span>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <a th:href="@{/super-admin/switch-company/{id}(id=${company.id})}"
+                           class="flex-1 inline-flex justify-center items-center px-3 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition">
+                            Spravovat
+                        </a>
+                        <a th:href="@{/super-admin/delete-company/{id}(id=${company.id})}"
+                           onclick="return confirm('Opravdu chcete smazat tuto firmu?')"
+                           class="inline-flex justify-center items-center px-3 py-2.5 border border-red-200 text-sm font-medium rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

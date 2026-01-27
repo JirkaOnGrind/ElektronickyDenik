@@ -82,4 +82,17 @@ public class CompanyService {
 
         return "success";
     }
+    @Transactional
+    public void deleteFullCompany(Long companyId) {
+        Optional<Company> companyOpt = companyRepository.findById(companyId);
+        if (companyOpt.isPresent()) {
+            Company company = companyOpt.get();
+            // Smažeme všechny uživatele s klíčem dané firmy
+            List<User> users = userRepository.findByKeyAndDeletedAtIsNull(company.getKey());
+            userRepository.deleteAll(users);
+
+            // Smažeme samotnou firmu
+            companyRepository.delete(company);
+        }
+    }
 }
