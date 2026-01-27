@@ -210,7 +210,7 @@ public class AuthController {
                 }
 
                 // b) Kontrola oprávnění (Viditelnost / Admin / Owner / VehicleAdmin)
-                boolean isGlobalAdmin = "ADMIN".equals(currentUser.getRole()) || "OWNER".equals(currentUser.getRole());
+                boolean isGlobalAdmin = "ADMIN".equals(currentUser.getRole()) || "OWNER".equals(currentUser.getRole()) || "SUPER_ADMIN".equals(currentUser.getRole());
                 boolean isVehicleAdmin = v.getVehicleAdmins().contains(currentUser);
                 boolean isAllowedUser = v.getAllowedUsers().contains(currentUser);
 
@@ -240,11 +240,12 @@ public class AuthController {
             }
         }
 
-        // Role Logic (Admin/Owner/VehicleAdmin)
+
         boolean isAdminOrOwner = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN") ||
-                        role.equals("OWNER") || role.equals("ROLE_OWNER"));
+                        role.equals("OWNER") || role.equals("ROLE_OWNER") ||
+                        role.equals("SUPER_ADMIN") || role.equals("ROLE_SUPER_ADMIN"));
 
         boolean isVehicleAdmin = false;
         if (selectedVehicle != null) {

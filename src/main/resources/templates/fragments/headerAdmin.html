@@ -41,6 +41,14 @@
                 <div class="flex items-center gap-4">
 
                     <!-- Logout Button (Visible on Desktop) -->
+                    <a th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
+                       th:href="@{/super-admin/dashboard}"
+                       class="hidden md:inline-flex items-center px-4 py-2 mr-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                        Změnit firmu
+                    </a>
                     <a th:href="@{/logout}"
                        class="hidden md:inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-400 hover: text-red-600 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         Odhlásit se
@@ -71,6 +79,11 @@
                 <a th:href="@{/admin/machines}"
                    class="block text-lg font-semibold text-gray-700 hover:text-orange-600 hover:bg-orange-50 px-4 py-3 rounded-lg transition">
                     Stroje
+                </a>
+                <a th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
+                   th:href="@{/super-admin/dashboard}"
+                   class="block text-lg font-semibold text-indigo-600 hover:bg-indigo-50 px-4 py-3 rounded-lg transition border-t border-gray-100 mt-2">
+                    Zpět na výběr firmy
                 </a>
                 <!-- Mobile Logout -->
                 <a th:href="@{/logout}"

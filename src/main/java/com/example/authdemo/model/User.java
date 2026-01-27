@@ -23,7 +23,7 @@ public class User {
     @Column(name = "phone_number", nullable = false, unique = true)
     private String phone;
 
-    @Column(nullable = false)
+    @Column(name = "user_key", nullable=false)
     private String key;
 
     @Column(nullable = false)
@@ -41,16 +41,16 @@ public class User {
     @Column(name = "gdpr_accepted", nullable = false)
     private boolean gdprAccepted;
 
-    @Column(name = "gdpr_accepted_at", nullable = false)
+    @Column(name = "gdpr_accepted_at", nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime gdprAcceptedAt;
 
     @Column(name = "terms_accepted", nullable = false)
     private boolean termsAccepted;
 
-    @Column(name = "terms_accepted_at", nullable = false)
+    @Column(name = "terms_accepted_at", nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime termsAcceptedAt;
 
-    @Column(name = "deleted_at")
+    @Column(name = "deleted_at", columnDefinition = "DATETIME")
     private LocalDateTime deletedAt;
 
     @Id

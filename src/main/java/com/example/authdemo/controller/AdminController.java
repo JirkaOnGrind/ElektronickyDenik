@@ -61,7 +61,9 @@ public class AdminController {
             model.addAttribute("companyName", "Administrace");
             model.addAttribute("companyKey", loggedUser.getKey());
         }
-
+        if (!"ADMIN".equals(loggedUser.getRole()) && !"OWNER".equals(loggedUser.getRole()) && !"SUPER_ADMIN".equals(loggedUser.getRole())) {
+            return "redirect:/";
+        }
         // Title do záložky prohlížeče necháme obecný nebo taky změníme
         model.addAttribute("pageTitle", "Administrace");
 
@@ -91,7 +93,7 @@ public class AdminController {
     public String usersList(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
 
-        if (!"ADMIN".equals(loggedUser.getRole()) && !"OWNER".equals(loggedUser.getRole())) {
+        if (!"ADMIN".equals(loggedUser.getRole()) && !"OWNER".equals(loggedUser.getRole()) && !"SUPER_ADMIN".equals(loggedUser.getRole())) {
             throw new AccessDeniedException("Nemáte oprávnění přistupovat k seznamu uživatelů.");
         }
 
@@ -189,7 +191,7 @@ public class AdminController {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
         User targetUser = userRepository.findById(id).orElseThrow();
 
-        if ("OWNER".equals(loggedUser.getRole())) {
+        if ("OWNER".equals(loggedUser.getRole())|| "SUPER_ADMIN".equals(loggedUser.getRole())) {
             // Allowed
         } else if ("ADMIN".equals(loggedUser.getRole())) {
             if ("ADMIN".equals(targetUser.getRole()) || "OWNER".equals(targetUser.getRole())) {
@@ -259,7 +261,7 @@ public class AdminController {
                                      @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser,
                                      RedirectAttributes redirectAttributes) {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
-        if (!"OWNER".equals(loggedUser.getRole())) {
+        if (!"OWNER".equals(loggedUser.getRole()) && !"SUPER_ADMIN".equals(loggedUser.getRole())) {
             throw new AccessDeniedException("Pouze vlastník (OWNER) může jmenovat administrátory.");
         }
         userService.changeRole(id, "ADMIN");
@@ -274,7 +276,7 @@ public class AdminController {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
         Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseThrow(() -> new RuntimeException("Vehicle not found"));
 
-        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole()) || "OWNER".equals(loggedUser.getRole());
+        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole()) || "OWNER".equals(loggedUser.getRole()) || "SUPER_ADMIN".equals(loggedUser.getRole());
         boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream().anyMatch(admin -> admin.getId().equals(loggedUser.getId()));
 
         if (!vehicle.getCompanyKey().equals(loggedUser.getKey()) || (!isGlobalAdmin && !isVehicleAdmin)) {
@@ -288,7 +290,7 @@ public class AdminController {
 
         // 2. NOVÁ ÚPRAVA: Odstraníme i ostatní ADMINy a OWNERa
         // Ti mají přístup automaticky, takže je v tomto seznamu nepotřebujeme vidět
-        companyUsers.removeIf(u -> "ADMIN".equals(u.getRole()) || "OWNER".equals(u.getRole()));
+        companyUsers.removeIf(u -> "ADMIN".equals(u.getRole()) || "OWNER".equals(u.getRole()) || "SUPER_ADMIN".equals(u.getRole()));
 
         model.addAttribute("vehicle", vehicle);
         model.addAttribute("users", companyUsers);
@@ -305,8 +307,7 @@ public class AdminController {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
         Vehicle vehicle = vehicleRepository.findById(vehicleId).orElseThrow();
 
-        // --- OPRAVA ZDE: Přidáno || "OWNER".equals(...) ---
-        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole()) || "OWNER".equals(loggedUser.getRole());
+        boolean isGlobalAdmin = "ADMIN".equals(loggedUser.getRole()) || "OWNER".equals(loggedUser.getRole()) || "SUPER_ADMIN".equals(loggedUser.getRole());
 
         // Zbytek zůstává stejný (kontrola správce vozíku)
         boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream().anyMatch(admin -> admin.getId().equals(loggedUser.getId()));
@@ -348,7 +349,9 @@ public class AdminController {
         User loggedUser = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
         User targetUser = userRepository.findById(id).orElseThrow();
 
-        if (!"OWNER".equals(loggedUser.getRole())) throw new AccessDeniedException("Pouze vlastník (OWNER) může odebírat oprávnění.");
+        if (!"OWNER".equals(loggedUser.getRole()) && !"SUPER_ADMIN".equals(loggedUser.getRole())) {
+            throw new AccessDeniedException("Pouze vlastník (OWNER) nebo Super Admin může odebírat oprávnění.");
+        }
         if ("OWNER".equals(targetUser.getRole())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Nemůžete odebrat oprávnění vlastníkovi.");
             return "redirect:/admin/users/" + id;

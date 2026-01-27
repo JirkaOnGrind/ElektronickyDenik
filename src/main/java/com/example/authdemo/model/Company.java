@@ -28,7 +28,7 @@ public class Company {
     @Column(nullable = false)
     private Long admin;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true,name = "company_key")
     private String key;
 
 
