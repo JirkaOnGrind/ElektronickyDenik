@@ -2,12 +2,13 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Domů</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
-<div th:replace="~{fragments/header :: mainHeader(title=${pageTitle})}"></div>
+<div th:replace="~{fragments/header :: mainHeader(${pageTitle})}"></div>
 
 <div class="flex-grow container mx-auto px-4 py-8">
     <div class="text-center mb-8">

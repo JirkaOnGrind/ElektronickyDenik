@@ -112,19 +112,34 @@ public class MaintenanceController {
     public String showSuccessPage(@RequestParam Long recordId, Model model, Principal principal) {
         if (principal != null) {
             userService.findByEmail(principal.getName()).ifPresent(u -> model.addAttribute("user", u));
+            Optional<User> userOpt = userService.findByEmail(principal.getName());
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                model.addAttribute("user", user);
+
+                // --- TOTO TI CHYBĚLO PRO HEADER ---
+                companyService.findByKey(user.getKey())
+                        .ifPresent(company -> model.addAttribute("companyName", company.getCompanyName()));
+                // ----------------------------------
+            }
         }
 
-        Optional<MaintenanceRecord> record = maintenanceService.findById(recordId);
-        if (record.isPresent()) {
-            MaintenanceRecord r = record.get();
+        Optional<MaintenanceRecord> recordOpt = maintenanceService.findById(recordId);
+        if (recordOpt.isPresent()) {
+            MaintenanceRecord r = recordOpt.get();
+
+            // 1. Pro HTML část <div th:if="${record}"> ...
             model.addAttribute("record", r);
 
-            // --- PŘIDÁNO: ID vozidla pro tlačítko "Domů" ---
-            model.addAttribute("vehicleId", r.getVehicle().getId());
-            // -----------------------------------------------
+            // 2. Pro tlačítka, která používají ${maintenance.vehicle.id}
+            model.addAttribute("maintenance", r);
+
+            // 3. Pro tlačítko Domů ${vehicle.id} -> Pošleme CELÝ objekt Vehicle
+            model.addAttribute("vehicle", r.getVehicle());
 
             model.addAttribute("pageTitle", "Údržba uložena");
-            model.addAttribute("RESULT", MaintenanceRecord.MaintenanceResult.class);
+        } else {
+            return "redirect:/error"; // Nebo kamkoliv jinam
         }
 
         return "maintenance-success";

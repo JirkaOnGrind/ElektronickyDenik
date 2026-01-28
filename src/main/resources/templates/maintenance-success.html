@@ -2,6 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Záznam uložen</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -41,16 +42,19 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a th:href="@{/maintenance(vehicleId=${record.vehicle.id}, mode='create')}"
-               class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium">
-                Nový záznam
+            <a th:href="@{/maintenance(vehicleId=${maintenance.vehicle.id}, mode='create')}"
+               class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium text-center">
+                Nová údržba
             </a>
-            <a th:href="@{/home(vehicleId=${vehicleId})}"
-               class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-medium">
+
+            <a th:href="@{/home(vehicleId=${vehicle.id})}"
+               class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-medium text-center">
                 Domů
             </a>
-            <a th:href="@{/maintenance(vehicleId=${record.vehicle.id})}"
-               class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium">
+
+            <a th:href="@{/maintenance(vehicleId=${maintenance.vehicle.id})}"
+               th:if="${user.role == 'ADMIN' || user.role == 'OWNER' || user.role == 'SUPER_ADMIN'}"
+               class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium text-center">
                 Historie údržby
             </a>
         </div>

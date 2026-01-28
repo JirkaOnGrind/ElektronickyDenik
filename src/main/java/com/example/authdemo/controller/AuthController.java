@@ -261,10 +261,11 @@ public class AuthController {
         }
 
         if (isAdminOrOwner || isVehicleAdmin) {
+
             return "vehicleSpecificAdmin";
         }
-
-        model.addAttribute("pageTitle", "Domů");
+        Optional<Company> companyOpt = companyService.findByKey(currentUser.getKey());
+        model.addAttribute("pageTitle", companyOpt.get().getCompanyName());
         return "vehicleSpecificUser";
     }
 

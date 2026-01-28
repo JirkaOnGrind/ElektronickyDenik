@@ -2,6 +2,7 @@
 <html lang="cs" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Denní kontrola vozíku</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -28,7 +29,7 @@
 
             <a th:if="${canViewHistory}"
                th:href="@{/daily-check(vehicleId=${vehicle.id})}"
-               class="relative pointer-events-auto bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded shadow text-sm flex items-center gap-2 z-10 transition">
+               class="relative pointer-events-auto mt-4 md:mt-0 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded shadow text-sm flex items-center gap-2 z-10 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -110,14 +111,14 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mt-6">
+            <div class="flex flex-col md:flex-row items-center justify-between mt-6 gap-4">
                 <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center">
                     Uložit kontrolu
                 </button>
 
                 <a th:href="@{/home(vehicleId=${vehicle.id})}"
-                   class="inline-flex items-center justify-center
+                   class="w-full md:w-auto inline-flex items-center justify-center
               bg-gray-500 hover:bg-gray-600
               text-white font-bold
               py-2 px-6 rounded

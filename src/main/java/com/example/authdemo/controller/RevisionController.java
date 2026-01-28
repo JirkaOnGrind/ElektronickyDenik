@@ -114,6 +114,16 @@ public class RevisionController {
     public String showSuccessPage(@RequestParam Long revisionId, Model model, Principal principal) {
         if (principal != null) {
             userService.findByEmail(principal.getName()).ifPresent(u -> model.addAttribute("user", u));
+            Optional<User> userOpt = userService.findByEmail(principal.getName());
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                model.addAttribute("user", user);
+
+                // --- TOTO TI CHYBĚLO PRO HEADER ---
+                companyService.findByKey(user.getKey())
+                        .ifPresent(company -> model.addAttribute("companyName", company.getCompanyName()));
+                // ----------------------------------
+            }
         }
         Optional<Revision> revisionOpt = revisionService.findById(revisionId);
         if (revisionOpt.isPresent()) {

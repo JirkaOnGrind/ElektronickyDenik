@@ -125,6 +125,15 @@ public class DailyCheckController {
         if (principal != null) {
             Optional<User> userOpt = userService.findByEmail(principal.getName());
             userOpt.ifPresent(user -> model.addAttribute("user", user));
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                model.addAttribute("user", user);
+
+                // --- TOTO TI CHYBĚLO PRO HEADER ---
+                companyService.findByKey(user.getKey())
+                        .ifPresent(company -> model.addAttribute("companyName", company.getCompanyName()));
+                // ----------------------------------
+            }
         }
 
         Optional<DailyCheck> dailyCheck = dailyCheckService.getDailyCheckById(checkId);

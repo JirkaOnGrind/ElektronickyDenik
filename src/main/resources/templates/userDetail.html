@@ -2,6 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail uživatele</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -117,7 +118,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-end">
+                    <div class="mt-6 flex justify-center">
                         <button type="submit"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-sm transition duration-200 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,7 +131,7 @@
             </div>
         </div>
 
-        <div class="bg-gray-50 px-8 py-5 border-t border-gray-200 flex flex-col sm:flex-row justify-end items-center gap-3">
+        <div class="bg-gray-50 px-8 py-5 border-t border-gray-200 flex flex-col sm:flex-row justify-center items-center gap-3">
 
             <form th:if="${(loggedUser.role == 'OWNER' or loggedUser.role == 'SUPER_ADMIN') and user.role == 'USER'}"
                   th:action="@{/admin/users/promote/{id}(id=${user.id})}" method="post">

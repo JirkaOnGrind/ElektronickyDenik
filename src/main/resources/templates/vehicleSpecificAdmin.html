@@ -2,6 +2,7 @@
 <html lang="cs" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Správa vozidla</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -99,7 +100,7 @@
     </div>
 
     <div th:if="${selectedVehicle != null}" class="max-w-6xl mx-auto border-t border-gray-200 pt-8 mt-8">
-        <div class="flex justify-end">
+        <div class="flex justify-center">
             <form th:action="@{/vehicles/delete}" method="post"
                   onsubmit="return confirm('Opravdu chcete nenávratně smazat tento stroj a všechny jeho záznamy?');">
                 <input type="hidden" name="vehicleId" th:value="${selectedVehicle.id}" />
