@@ -4,6 +4,7 @@ import com.example.authdemo.dto.DailyCheckForm;
 import com.example.authdemo.model.DailyCheck;
 import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
+import com.example.authdemo.service.CompanyService;
 import com.example.authdemo.service.DailyCheckService;
 import com.example.authdemo.service.UserService;
 import com.example.authdemo.service.VehicleService;
@@ -21,7 +22,8 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/daily-check")
 public class DailyCheckController {
-
+    @Autowired
+    private CompanyService companyService;
     @Autowired
     private DailyCheckService dailyCheckService;
 
@@ -49,9 +51,10 @@ public class DailyCheckController {
         User user = userOpt.get();
 
         Vehicle vehicle = vehicleOpt.get();
-
+        companyService.findByKey(user.getKey())
+                .ifPresent(company -> model.addAttribute("companyName", company.getCompanyName()));
         // 2. PERMISSIONS CHECK
-        boolean isGlobalAdminOrOwner = "ADMIN".equals(user.getRole()) || "OWNER".equals(user.getRole());
+        boolean isGlobalAdminOrOwner = "ADMIN".equals(user.getRole()) || "OWNER".equals(user.getRole()) || "SUPER_ADMIN".equals(user.getRole());
         // Check if user is in the vehicle's specific admin list
         boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream()
                 .anyMatch(admin -> admin.getId().equals(user.getId()));

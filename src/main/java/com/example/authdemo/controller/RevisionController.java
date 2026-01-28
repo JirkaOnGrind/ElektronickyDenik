@@ -4,6 +4,7 @@ import com.example.authdemo.dto.RevisionForm;
 import com.example.authdemo.model.Revision;
 import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
+import com.example.authdemo.service.CompanyService;
 import com.example.authdemo.service.RevisionService;
 import com.example.authdemo.service.UserService;
 import com.example.authdemo.service.VehicleService;
@@ -21,7 +22,8 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/revision")
 public class RevisionController {
-
+    @Autowired
+    private CompanyService companyService;
     @Autowired
     private RevisionService revisionService;
     @Autowired
@@ -46,8 +48,11 @@ public class RevisionController {
         User user = userOpt.get();
         Vehicle vehicle = vehicleOpt.get();
 
+        companyService.findByKey(user.getKey())
+                .ifPresent(company -> model.addAttribute("companyName", company.getCompanyName()));
+        // ------------------------------------------------
         // Oprávnění
-        boolean isGlobalAdminOrOwner = "ADMIN".equals(user.getRole()) || "OWNER".equals(user.getRole());
+        boolean isGlobalAdminOrOwner = "ADMIN".equals(user.getRole()) || "OWNER".equals(user.getRole()) || "SUPER_ADMIN".equals(user.getRole());
         boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream()
                 .anyMatch(admin -> admin.getId().equals(user.getId()));
         boolean canViewHistory = isGlobalAdminOrOwner || isVehicleAdmin;

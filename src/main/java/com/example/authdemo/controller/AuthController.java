@@ -185,6 +185,14 @@ public class AuthController {
             if (userOpt.isPresent()) {
                 currentUser = userOpt.get();
                 model.addAttribute("user", currentUser);
+
+                // --- TOTO TI TAM CHYBĚLO ---
+                // Musíš načíst firmu podle klíče uživatele a poslat její název
+                Optional<Company> companyOpt = companyService.findByKey(currentUser.getKey());
+                if (companyOpt.isPresent()) {
+                    model.addAttribute("companyName", companyOpt.get().getCompanyName());
+                }
+                // ---------------------------
             }
         }
 

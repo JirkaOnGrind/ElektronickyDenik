@@ -4,6 +4,7 @@ import com.example.authdemo.dto.MaintenanceForm;
 import com.example.authdemo.model.MaintenanceRecord;
 import com.example.authdemo.model.User;
 import com.example.authdemo.model.Vehicle;
+import com.example.authdemo.service.CompanyService;
 import com.example.authdemo.service.MaintenanceService;
 import com.example.authdemo.service.UserService;
 import com.example.authdemo.service.VehicleService;
@@ -21,7 +22,8 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/maintenance")
 public class MaintenanceController {
-
+    @Autowired
+    private CompanyService companyService;
     @Autowired
     private MaintenanceService maintenanceService;
     @Autowired
@@ -45,9 +47,10 @@ public class MaintenanceController {
         if (userOpt.isEmpty()) return "redirect:/login";
         User user = userOpt.get();
         Vehicle vehicle = vehicleOpt.get();
-
+        companyService.findByKey(user.getKey())
+                .ifPresent(company -> model.addAttribute("companyName", company.getCompanyName()));
         // 2. Kontrola oprávnění (Admin/Owner/VehicleAdmin vidí historii)
-        boolean isGlobalAdminOrOwner = "ADMIN".equals(user.getRole()) || "OWNER".equals(user.getRole());
+        boolean isGlobalAdminOrOwner = "ADMIN".equals(user.getRole()) || "OWNER".equals(user.getRole()) || "SUPER_ADMIN".equals(user.getRole());
         boolean isVehicleAdmin = vehicle.getVehicleAdmins().stream()
                 .anyMatch(admin -> admin.getId().equals(user.getId()));
 

@@ -86,10 +86,12 @@ public class VehicleController {
         model.addAttribute("vehicles", vehicles);
 
         // 3. Check Permissions (Admin / Owner)
+        // Upravit v metodě showVehiclesList v VehicleController.java
         boolean isAdminOrOwner = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals("ADMIN") || role.equals("ROLE_ADMIN") ||
-                        role.equals("OWNER") || role.equals("ROLE_OWNER"));
+                .anyMatch(role -> role.equals("ROLE_ADMIN") ||
+                        role.equals("ROLE_OWNER") ||
+                        role.equals("ROLE_SUPER_ADMIN")); // Přidáno ROLE_SUPER_ADMIN
 
         if (isAdminOrOwner) {
             return "vehicle-list-admin";

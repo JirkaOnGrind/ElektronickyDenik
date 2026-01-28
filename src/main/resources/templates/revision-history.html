@@ -20,10 +20,10 @@
 <body class="bg-gray-100 min-h-screen flex flex-col text-gray-800">
 
 <div class="no-print">
-    <th:block th:if="${user.role == 'ADMIN' || user.role == 'OWNER'}">
+    <th:block th:if="${user.role == 'ADMIN' || user.role == 'OWNER'|| user.role == 'SUPER_ADMIN'}">
         <div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
     </th:block>
-    <th:block th:unless="${user.role == 'ADMIN' || user.role == 'OWNER'}">
+    <th:block th:unless="${user.role == 'ADMIN' || user.role == 'OWNER'|| user.role == 'SUPER_ADMIN'}">
         <div th:replace="~{fragments/header :: mainHeader(title=${pageTitle})}"></div>
     </th:block>
 </div>

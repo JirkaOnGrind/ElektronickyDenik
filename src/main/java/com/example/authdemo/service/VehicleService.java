@@ -38,18 +38,20 @@ public class VehicleService {
     }
 
 
+    // Upravit metodu v VehicleService.java
     public List<Vehicle> getVehiclesForCurrentUser(Principal principal) {
-        // 1. Get the real User object from database
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2. Check Role (UPDATED: Include OWNER)
-        if ("ADMIN".equalsIgnoreCase(user.getRole()) || "OWNER".equalsIgnoreCase(user.getRole())) {
-            // Admin AND Owner see EVERYTHING in the company
+        // PŘIDÁNO: Kontrola i pro SUPER_ADMIN
+        if ("ADMIN".equalsIgnoreCase(user.getRole()) ||
+                "OWNER".equalsIgnoreCase(user.getRole()) ||
+                "SUPER_ADMIN".equalsIgnoreCase(user.getRole())) {
+
+            // Vidí všechna vozidla firmy, jejíž klíč má aktuálně nastaven v profilu
             return vehicleRepository.findByCompanyKey(user.getKey());
         } else {
-            // Standard User sees only what is explicitly allowed (Whitelist)
             return vehicleRepository.findVisibleVehicles(user.getKey(), user);
         }
     }

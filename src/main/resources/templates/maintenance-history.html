@@ -20,10 +20,10 @@
 <body class="bg-gray-100 min-h-screen flex flex-col text-gray-800">
 
 <div class="no-print">
-    <th:block th:if="${user.role == 'ADMIN' || user.role == 'OWNER'}">
+    <th:block th:if="${user.role == 'ADMIN' || user.role == 'OWNER' || user.role == 'SUPER_ADMIN'}">
         <div th:replace="~{fragments/headerAdmin :: mainHeader}"></div>
     </th:block>
-    <th:block th:unless="${user.role == 'ADMIN' || user.role == 'OWNER'}">
+    <th:block th:unless="${user.role == 'ADMIN' || user.role == 'OWNER' || user.role == 'SUPER_ADMIN'}">
         <div th:replace="~{fragments/header :: mainHeader(title=${pageTitle})}"></div>
     </th:block>
 </div>
@@ -34,10 +34,10 @@
         <div>
             <h1 class="text-3xl font-bold text-gray-800">
                 Přehled údržby:
-                <span th:text="${vehicle.brand} + ' ' + ${vehicle.type}" class="text-blue-600"></span>
+                <span th:text="${vehicle.brand} + ' ' + ${vehicle.type}" class="text-green-600"></span>
             </h1>
             <div class="print-only mt-2 text-xl font-bold uppercase tracking-wider border-b-2 border-gray-300 pb-1 mb-2">
-                Kategorie: Údržba a Servis
+                Kategorie: Záznamy o údržbě a servisu
             </div>
             <p class="text-gray-600 mt-1">
                 Evidenční číslo: <span th:text="${vehicle.registrationNumber}" class="font-semibold"></span>
@@ -46,7 +46,7 @@
 
         <div class="flex gap-3 no-print">
             <a th:href="@{/maintenance(vehicleId=${vehicle.id}, mode='create')}"
-               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 transition">
+               class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -73,7 +73,7 @@
                 <label class="block text-sm font-medium text-gray-700">Do data:</label>
                 <input type="date" name="endDate" th:value="${endDate}" class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2">
             </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow">Filtrovat</button>
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow">Filtrovat</button>
         </form>
     </div>
 

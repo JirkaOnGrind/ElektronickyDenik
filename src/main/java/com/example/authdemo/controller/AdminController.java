@@ -369,4 +369,26 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("successMessage", "Uživateli byla odebrána administrátorská práva.");
         return "redirect:/admin/usersList";
     }
+    @ModelAttribute
+    public void addAttributes(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
+        if (authUser != null) {
+            userRepository.findByEmail(authUser.getUsername()).ifPresent(loggedUser -> {
+                companyService.findByKey(loggedUser.getKey()).ifPresent(company -> {
+                    model.addAttribute("companyName", company.getCompanyName());
+                });
+            });
+        }
+    }
+    // Přidejte do src/main/java/com/example/authdemo/controller/AdminController.java
+
+    @ModelAttribute
+    public void addCompanyName(Model model, @AuthenticationPrincipal org.springframework.security.core.userdetails.User authUser) {
+        if (authUser != null) {
+            userRepository.findByEmail(authUser.getUsername()).ifPresent(loggedUser -> {
+                companyService.findByKey(loggedUser.getKey()).ifPresent(company -> {
+                    model.addAttribute("companyName", company.getCompanyName());
+                });
+            });
+        }
+    }
 }
