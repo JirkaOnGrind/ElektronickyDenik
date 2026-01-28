@@ -69,11 +69,11 @@ public class EmailService {
     }
 
     // Pomocná funkce pro send ale s userEmail
-    @Async
     public void sendVerificationEmailViaEmail(String email)
     {
         Optional<User> dbUser = userRepository.findByEmail(email);
         if (dbUser.isPresent()) {
+            System.out.println("Odesílám mail pro: " + email);
             User user = dbUser.get();
             // Musí se vygenerovat nový, starý už je zašifrován -------------------------
             user.setVerificationKey(User.generateVerificationCode());

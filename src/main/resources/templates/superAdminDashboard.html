@@ -19,8 +19,6 @@
     <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h2 class="text-xl font-bold text-gray-800">Registrované společnosti</h2>
-            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-400"
-                  th:text="${companies.size() + ' firem'}">Počet</span>
         </div>
 
         <div th:if="${companies.empty}" class="p-8 text-center text-gray-500">

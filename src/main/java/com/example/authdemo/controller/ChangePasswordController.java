@@ -44,6 +44,7 @@ public class ChangePasswordController {
         }
         else
         {
+            System.out.println("Uživatel nalezen, jdu volat EmailService...");
             emailService.sendVerificationEmailViaEmail(email);
             session.setAttribute("verificationType", "PASSWORD_RESET");
             session.setAttribute("email", email);
