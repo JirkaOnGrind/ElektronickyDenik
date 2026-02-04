@@ -7,8 +7,10 @@ import com.example.authdemo.model.Vehicle;
 import com.example.authdemo.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.access.AccessDeniedException; // Import pro výjimku
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,17 +33,30 @@ public class AuthController {
     @Autowired
     private DailyCheckService dailyCheckService;
 
-    // --- INDEX - přesměrování na login ---
+    // 1. KOŘEN WEBU ("/")
     @GetMapping("/")
     public String index() {
-        return "redirect:/login";
+        // Zkusíme zjistit, jestli už není přihlášený
+        String redirectUrl = getRedirectUrlIfLoggedIn();
+        if (redirectUrl != null) {
+            return redirectUrl; // Je přihlášený -> poslat na dashboard/list
+        }
+        return "redirect:/login"; // Není přihlášený -> poslat na login
     }
 
-    // USER LOGIN FORM
+    // 2. LOGIN FORMULÁŘ ("/login")
     @GetMapping("/login")
     public String loginForm(Model model, HttpSession session,
                             @RequestParam(required = false) String error,
                             @RequestParam(required = false) String logout) {
+
+        // KONTROLA: Pokud už je přihlášený (např. přes Remember Me), nepouštěj ho na login formulář
+        String redirectUrl = getRedirectUrlIfLoggedIn();
+        if (redirectUrl != null) {
+            return redirectUrl;
+        }
+
+        // --- Klasická logika pro zobrazení formuláře ---
         model.addAttribute("pageTitle", "Login");
 
         if (error != null) {
@@ -53,6 +68,30 @@ public class AuthController {
         }
 
         return "login";
+    }
+
+    // --- POMOCNÁ METODA PRO ROZHODOVÁNÍ KAM PŘESMĚROVAT ---
+    private String getRedirectUrlIfLoggedIn() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Pokud je uživatel přihlášený a není to "anonym"
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+
+            // Projdeme jeho role a rozhodneme
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                String role = authority.getAuthority();
+
+                // POZOR: Spring Security ukládá role často jako "ROLE_ADMIN", tak kontrolujeme obojí
+                if (role.contains("ADMIN") || role.contains("OWNER")) {
+                    return "redirect:/admin/dashboard";
+                }
+            }
+
+            // Pokud není Admin ani Owner, je to běžný User
+            return "redirect:/vehicles/list";
+        }
+
+        return null; // Není přihlášený
     }
 
     // --- REGISTER GET ---

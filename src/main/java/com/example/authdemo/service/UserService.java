@@ -148,4 +148,5 @@ public class UserService implements UserDetailsService {
         // Save the update
         userRepository.save(user);
     }
+
 }

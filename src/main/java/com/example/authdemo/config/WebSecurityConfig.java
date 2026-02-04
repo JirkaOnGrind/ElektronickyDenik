@@ -22,7 +22,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ... (veřejné endpointy zůstávají) ...
                         .requestMatchers("/login", "/auth/**", "/register", "/css/**", "/js/**","/register/company","/api/**","/dev/**","/verification","/changePassword", "/auth/verification/**","/newPassword").permitAll()
-                        .requestMatchers("/images/logo-provozni-denik.png").permitAll()
+                        .requestMatchers("/images/**").permitAll()
                         // Povolit SUPER_ADMIN přístup do jeho sekce
                         .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
 
@@ -56,6 +56,11 @@ public class WebSecurityConfig {
                         })
                         .failureUrl("/login?error=true")
                         .permitAll()
+                )
+                .rememberMe(remember -> remember
+                        .key("SuperTajnyKlicKteryNikdoNeuhodne2026") // Pevný klíč, neměnit!
+                        .tokenValiditySeconds(31536000) // 60 * 60 * 24 * 365 = 1 rok
+                        .alwaysRemember(true) // Tohle je trik! Nemusíš pak dávat checkbox do HTML
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")

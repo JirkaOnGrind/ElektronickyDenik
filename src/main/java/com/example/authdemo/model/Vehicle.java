@@ -92,6 +92,7 @@ public class Vehicle {
         this.vehicleAdmins.remove(user);
     }
 
+
     // --- ENUMS ---
     public enum VehicleCategory {
         JERABY("Jeřáby"),

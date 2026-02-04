@@ -42,7 +42,31 @@
             </div>
         </nav>
     </header>
-</div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. Zjistíme, jestli se skript vůbec spustil
+            console.log("Header skript běží...");
 
+            if (window.Android) {
+                // 2. Pokud vidíme Android, dáme vědět uživateli (TOHLE MUSÍŠ VIDĚT NA MOBILU)
+                // alert("DEBUG: Jsem online a vidím Android Bridge!");
+
+                // 3. Zkusíme stáhnout data
+                fetch('/api/offline-vehicles')
+                    .then(res => res.json())
+                    .then(data => {
+                        // 4. Zkusíme uložit
+                        window.Android.saveData('offline_vehicles', JSON.stringify(data));
+                        alert("DEBUG: ÚSPĚCH! Uloženo " + data.length + " aut do telefonu.");
+                    })
+                    .catch(err => {
+                        alert("DEBUG CHYBA: " + err.message);
+                    });
+            } else {
+                console.log("Android Bridge nenalezen (asi PC prohlížeč)");
+            }
+        });
+    </script>
+</div>
 </body>
 </html>
